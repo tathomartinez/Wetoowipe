@@ -23,7 +23,7 @@ client.on('message', message => {
 
     const command = args.shift().toLocaleLowerCase();
 
-    if(command === 'hey'){
+    if(command === 'hola'){
         client.commands.get(command).execute(message,args)
     }
     

@@ -1,7 +1,7 @@
 module.exports = {
-    name: 'hey',
-    description: 'Sirve para actualizar roles por io',
+    name: 'hola',
+    description: 'Saluda',
     execute(message, args){
-        message.channel.send('Hey Can u blowme ' + message.author.username + '??? Chuleo nea :v')
+        message.channel.send('Hola ' + message.author.username + '??? ')
     }
 }
