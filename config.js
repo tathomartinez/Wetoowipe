@@ -3,4 +3,5 @@ module.exports = {
     SUFIJO_ROL: "+",
     RAIDERIO_FIELDS: "mythic_plus_scores%2Cmythic_plus_scores_by_season",
     EMBEDCOLOR: "#fff",
+    PREFIJOBOT: "*"
 }

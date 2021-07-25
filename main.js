@@ -1,8 +1,7 @@
 const Discord = require('discord.js');
-
+const discordConfig = require('discordConfig.js');
+const config = require('config.js');
 const client = new Discord.Client();
-
-const prefix = '*';
 const fs = require('fs');
 
 client.commands = new Discord.Collection();
@@ -18,9 +17,9 @@ client.once('ready', () => {
 });
 
 client.on('message', message => {
-    if(!message.content.startsWith(prefix) || message.author.bot) return;
+    if(!message.content.startsWith(config.PREFIJOBOT) || message.author.bot) return;
 
-    const args = message.content.slice(prefix.length).split(/ +/);
+    const args = message.content.slice(config.PREFIJOBOT.length).split(/ +/);
 
     const command = args.shift().toLocaleLowerCase();
 
@@ -37,4 +36,4 @@ client.on('message', message => {
     }
 });
 
-client.login('ODY4NjQ2MjQ0MzgwMTkyODE4.YPyr2w.s0TePYybibad6C4JXYE6WiN3GTg')
+client.login(discordConfig.TOKEN)
