@@ -1,0 +1,40 @@
+const Discord = require('discord.js');
+
+const client = new Discord.Client();
+
+const prefix = '*';
+const fs = require('fs');
+
+client.commands = new Discord.Collection();
+
+const commandFile = fs.readdirSync('./src/commands/').filter(file => file.endsWith('.js'))
+for (const file of commandFile){
+    const command = require(`./src/commands/${file}`)
+    client.commands.set(command.name, command)
+}
+
+client.once('ready', () => {
+    console.log('WORKS.....!!!!')
+});
+
+client.on('message', message => {
+    if(!message.content.startsWith(prefix) || message.author.bot) return;
+
+    const args = message.content.slice(prefix.length).split(/ +/);
+
+    const command = args.shift().toLocaleLowerCase();
+
+    if(command === 'hey'){
+        client.commands.get(command).execute(message,args)
+    }
+    
+    if(command === 'chiste'){
+        client.commands.get(command).execute(message,args)
+    }
+    
+    if(command === 'update'){
+        client.commands.get(command).execute(message,args)
+    }
+});
+
+client.login('ODY4NjQ2MjQ0MzgwMTkyODE4.YPyr2w.s0TePYybibad6C4JXYE6WiN3GTg')
