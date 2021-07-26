@@ -49,7 +49,7 @@ module.exports = {
                     console.log(`>>>> Se esta creando un nuevo rol: ${rol}`)
                 }
 
-                message.member.setNickname(`${name}-${realm}`)
+                message.member.setNickname(`${name}-${realm.charAt(0).toUpperCase()}${realm.slice(1)}`)
 
                 const newEmbed = new Discord.MessageEmbed()
                     .setColor(config.EMBEDCOLOR)
