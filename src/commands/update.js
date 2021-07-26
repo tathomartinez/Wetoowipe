@@ -1,5 +1,6 @@
 const fetch = require("node-fetch");
 const config = require('../../config');
+const discordConfig = require('../../discordConfig');
 const Discord = require('discord.js');
 
 module.exports = {
@@ -13,7 +14,6 @@ module.exports = {
         let realm = urlArgs[1];
         let name = urlArgs[2];
         let url = `${config.URL_UPDATE}region=${region}&realm=${realm}&name=${name}&fields=${config.RAIDERIO_FIELDS}`;
-
         let roles = message.member.guild.roles.cache
 
         fetch(url)
@@ -22,6 +22,10 @@ module.exports = {
                 let score = json.mythic_plus_scores.all;
                 let rol = String(config.SUFIJO_ROL + Math.trunc(parseFloat(json.mythic_plus_scores.all) / 100) * 100);
                 let rolValido = roles.find(item => String(item.name) === String(rol));
+
+                if(!(message.member.roles.cache.has(discordConfig.MEMBERHASH))){
+                    message.member.roles.add(discordConfig.MEMBERHASH)
+                }
 
                 if (rolValido) {
                     if(!(message.member.roles.cache.find(r => String(r.name) === String(rol)))) {
