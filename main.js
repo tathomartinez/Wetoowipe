@@ -34,6 +34,14 @@ client.on('message', message => {
     if(command === 'update'){
         client.commands.get(command).execute(message,args)
     }
+
+    if(command === 'status'){
+        client.commands.get(command).execute(message,args)
+    }
+
+    if(command === 'shutdown'){
+        client.commands.get(command).execute(message,args)
+    }
 });
 
 client.login(discordConfig.TOKEN)
