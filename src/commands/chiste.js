@@ -1,11 +1,13 @@
 const utilChistes = require('../util/readChistes');
 const Discord = require('discord.js');
 const config = require('../../config');
+const {SlashCommandBuilder} = require('discord.js')
 
 module.exports = {
-    name: 'chiste',
-    description: 'Sirve para contar chistes',
-    execute(message, args){
+    data: new  SlashCommandBuilder()
+    .setName('chiste')
+    .setDescription('Sirve para contar chiste'),
+    async execute(message, args){
 
         let chistes = utilChistes.listaChistes;
         let chiste = chistes[Math.floor(Math.random() * chistes.length)]

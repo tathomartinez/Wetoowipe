@@ -1,12 +1,15 @@
-const fetch = require("node-fetch");
+const fetch = import("node-fetch");
 const config = require('../../config');
 // const discordConfig = require('../../discordConfig');
 const Discord = require('discord.js');
+const {SlashCommandBuilder} = require('discord.js')
 
 module.exports = {
-    name: 'update',
-    description: 'Sirve para actualizar roles por io',
-    execute(message, args) {
+    data: new  SlashCommandBuilder()
+
+    .setName('update')
+    .setDescription('Sirve para actualizar roles por io'),
+    async execute(message) {
         const rolesMitycPlus = message.member.guild.roles.cache.filter(item => item.name.startsWith(config.SUFIJO_ROL));
 
         let urlArgs = args[0].substring(args[0].indexOf('characters') + 11).split('/')
