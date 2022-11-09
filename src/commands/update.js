@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 const config = require('../../config');
-const discordConfig = require('../../discordConfig');
+// const discordConfig = require('../../discordConfig');
 const Discord = require('discord.js');
 
 module.exports = {
@@ -23,9 +23,9 @@ module.exports = {
                 let rol = String(config.SUFIJO_ROL + Math.trunc(parseFloat(json.mythic_plus_scores.all) / 100) * 100);
                 let rolValido = roles.find(item => String(item.name) === String(rol));
 
-                if(!(message.member.roles.cache.has(discordConfig.MEMBERHASH))){
-                    message.member.roles.add(discordConfig.MEMBERHASH)
-                }
+                // if(!(message.member.roles.cache.has(discordConfig.MEMBERHASH))){
+                //     message.member.roles.add(discordConfig.MEMBERHASH)
+                // }
 
                 if (rolValido) {
                     if(!(message.member.roles.cache.find(r => String(r.name) === String(rol)))) {
