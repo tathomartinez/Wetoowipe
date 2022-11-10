@@ -3,11 +3,12 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const fs = require('node:fs');
 const path = require('node:path');
 const managerInterval = require('./src/util/ManagerInterval');
-const { token } = require('./config.json');
+const { token , channelJoke} = require('./config.json');
 const { request } = require('undici');
 // const fetch = require('node-fetch');
 
-const timewait = Number(30 * 60000); // (n*60000) donde n son los minutos y se transforman en ms
+const timewait = Number(30 * 60000);
+// (n*60000) donde n son los minutos y se transforman en ms
 
 // const timewait = Number(1 * 30000); // (n*60000) donde n son los minutos y se transforman en ms
 
@@ -47,7 +48,7 @@ function resolverCommandFiles() {
 }
 
 function imprimirChiste(_client) {
-	const channel = _client.channels.cache.get('868902007962996746');
+	const channel = _client.channels.cache.get(channelJoke);
 	// const channel = _client.channels.cache.get('868651189200379966');
 	const file = new AttachmentBuilder('./assets/chuck.jpg');
 

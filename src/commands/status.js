@@ -8,7 +8,6 @@ module.exports = {
 	async execute(interaction) {
 		try {
 			await interaction.deferReply();
-			// await interaction.reply({ content: 'buscando respuesta', ephemeral: true });
 			await wait(2000);
 			await interaction.editReply('Definitivo eres un puto');
 			await interaction.followUp({ content: 'PREFIJOBOT' });
