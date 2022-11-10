@@ -1,23 +1,59 @@
 const utilChistes = require('../util/readChistes');
 const { EmbedBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');
+const managerInterval = require('../util/ManagerInterval');
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('chiste')
-		.setDescription('Sirve para contar chiste'),
+		.setDescription('Sirve para contar chiste')
+		.addStringOption(option =>
+			option.setName('botenable')
+				.setDescription('Toggle botEnable')
+				.setRequired(false)
+				.addChoices(
+					{ name: 'Yes', value: 'ON' },
+					{ name: 'No', value: 'OFF' },
+				)),
 	async execute(interaction) {
 
-		const chistes = utilChistes.listaChistes;
-		const chiste = chistes[Math.floor(Math.random() * chistes.length)];
+		const chiste = obtenerChiste();
 		const embed = new EmbedBuilder()
 			.setColor('Blue')
 			.setTitle('El chiste de hoy')
 			.setDescription(chiste)
 			.setImage('https://render-us.worldofwarcraft.com/character/ragnaros/39/139444007-avatar.jpg?alt=wow/static/images/2d/avatar/4-1.jpg')
-			.setFooter({ text: 'Bazinga!!!!!!' })
-			;
+			.setFooter({ text: 'Bazinga!!!!!!' });
+
 		interaction.reply({ embeds: [embed] });
 
+		if (!interaction.options.getString('botenable')) return;
+
+		const isEnable = interaction.options.getString('botenable') === 'ON';
+		let interval;
+		if (isEnable) {
+			interval = setInterval(() => { imprimirChiste(interaction.client, interaction); }, 5000);
+			managerInterval.map.set('chistes', interval);
+		} else {
+			interval = managerInterval.map.get('chistes');
+			clearInterval(interval);
+		}
+
+
+		function obtenerChiste() {
+			console.log('se esta ejecutando');
+			const chistes = utilChistes.listaChistes;
+			return chistes[Math.floor(Math.random() * chistes.length)];
+		}
+
+		function imprimirChiste(chanel, _interaction) {
+			console.log(_interaction);
+			console.log(chanel);
+			const channel = chanel.channels.cache.find(ch => ch.name === 'test');
+			channel.send('send nudes');
+			// chanel.cache.get(chanel).send('nudes');
+			obtenerChiste();
+		}
 	},
 };
