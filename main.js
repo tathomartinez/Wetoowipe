@@ -1,12 +1,15 @@
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.json');
+const { Client, Collection, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const fs = require('node:fs');
 const path = require('node:path');
-const utilChistes = require('./src/util/readChistes');
 const managerInterval = require('./src/util/ManagerInterval');
+const { token } = require('./config.json');
+const { request } = require('undici');
+// const fetch = require('node-fetch');
 
-const timewait = Number(20 * 60000) // (n*60000) donde n son los minutos y se transforman en ms
+const timewait = Number(30 * 60000); // (n*60000) donde n son los minutos y se transforman en ms
+
+// const timewait = Number(1 * 30000); // (n*60000) donde n son los minutos y se transforman en ms
 
 client.commands = new Collection();
 
@@ -25,15 +28,10 @@ function init() {
 }
 
 function iniciarChistes() {
-	const isEnabled = true;
-	let interval;
-	if (isEnabled) {
-		interval = setInterval(() => { imprimirChiste(client); }, timewait);
-		managerInterval.map.set('chistes', interval);
-	} else {
-		interval = managerInterval.map.get('chistes');
-		clearInterval(interval);
-	}
+	console.log('Se inicia proceso de chistes');
+	const interval = setInterval(() => { imprimirChiste(client); }, timewait);
+	managerInterval.map.set('chistes', interval);
+	console.log('Se finaliza proceso de chistes');
 }
 
 function resolverCommandFiles() {
@@ -49,13 +47,26 @@ function resolverCommandFiles() {
 }
 
 function imprimirChiste(_client) {
-	const channel = _client.channels.cache.find(ch => ch.name === 'chistes bot');
-	channel.send(obtenerChiste());
-}
+	const channel = _client.channels.cache.get('868902007962996746');
+	// const channel = _client.channels.cache.get('868651189200379966');
+	const file = new AttachmentBuilder('./assets/chuck.jpg');
 
-function obtenerChiste() {
-	const chistes = utilChistes.listaChistes;
-	return chistes[Math.floor(Math.random() * chistes.length)];
+	obtenerChiste().then(it => {
+		const embed = new EmbedBuilder()
+			.setColor('Blue')
+			.setTitle('El chiste de hoy')
+			.setDescription(it)
+			.setImage('attachment://chuck.jpg')
+			.setFooter({ text: 'Bazinga!!!!!!' });
+
+		channel.send({ embeds: [embed], files: [file] });
+	});
+
+}
+async function obtenerChiste() {
+	const catResult = await request('https://api.chucknorris.io/jokes/random');
+	const { value } = await catResult.body.json();
+	return value;
 }
 
 function resolverEventsFile() {
@@ -70,4 +81,5 @@ function resolverEventsFile() {
 	}
 }
 
+// client.login(process.env.TOKEN);
 client.login(token);
