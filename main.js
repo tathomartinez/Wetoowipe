@@ -8,27 +8,13 @@ const path = require('node:path');
 client.commands = new Collection();
 
 const commandsPath = path.join(__dirname, '/src/commands');
+
+const eventsPath = path.join(__dirname, '/src/events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-for (const file of commandFiles) {
-	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
-	// console.log(`${command}`);
-	// Set a new item in the Collection with the key as the command name and the value as the exported module
-	if ('data' in command && 'execute' in command) {
-		client.commands.set(command.data.name, command);
-	} else {
-		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-	}
-}
-
-client.once('ready', () => {
-	console.log('WORKS.....!!!!');
-});
-
-client.once(Events.ClientReady, c => {
-	console.log(`Ready! Logged in as ${c.user.tag}`);
-});
+init();
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
@@ -52,44 +38,33 @@ client.on(Events.InteractionCreate, async interaction => {
 
 });
 
-// client.on('message', message => {
-//     console.log('WORKS MENSAJE.....!!!!')
+function init() {
+	resolverCommandFiles();
+	resolverEventsFile();
+}
 
-//     console.log("message: " + message)
-//     console.log("Prefijo bot " + config.PREFIJOBOT)
-//     console.log("message: " + message.content)
+function resolverCommandFiles() {
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		if ('data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}
 
-
-//     if (!message.content.startsWith(config.PREFIJOBOT) || message.author.bot) return;
-//     const args = message.content.slice(config.PREFIJOBOT.length).split(/ +/);
-//     const command = args.shift().toLocaleLowerCase();
-
-//     switch (command) {
-//         case 'hola':
-//             client.commands.get(command).execute(message, args)
-//             break;
-//         case 'chiste':
-//             client.commands.get(command).execute(message, args)
-//             break;
-//         case 'update':
-//             client.commands.get(command).execute(message, args)
-//             break;
-//         case 'status':
-//             client.commands.get(command).execute(message, args)
-//             break;
-//         case 'shutdown':
-//             client.commands.get(command).execute(message, args)
-//             break;
-//         case 'chistedemon':
-//             var interval = setInterval(function () {
-//                 client.commands.get('chiste').execute(message, args)
-//             }, timewait);
-//             break;
-//         default:
-//             break;
-//     }
-
-// });
+function resolverEventsFile() {
+	for (const file of eventFiles) {
+		const filePath = path.join(eventsPath, file);
+		const event = require(filePath);
+		if (event.once) {
+			client.once(event.name, (...args) => event.execute(...args));
+		} else {
+			client.on(event.name, (...args) => event.execute(...args));
+		}
+	}
+}
 
 client.login(token);
-// client.login(discordConfig.TOKEN);
