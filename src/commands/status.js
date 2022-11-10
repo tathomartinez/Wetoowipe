@@ -18,8 +18,5 @@ module.exports = {
 		} catch (error) {
 			console.log(error);
 		}
-		// await interaction.reply({ content: 'buscando respuesta', ephemeral: true });
-		// await wait(200);
-		// await interaction.editReply('Definitivo eres un puto');
 	},
 };
