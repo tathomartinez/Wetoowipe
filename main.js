@@ -1,11 +1,14 @@
 const { Client, Collection, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.MessageContent],
+});
 const fs = require('node:fs');
 const path = require('node:path');
 const managerInterval = require('./src/util/ManagerInterval');
-const { token , channelJoke} = require('./config.json');
+const { token, channelJoke } = require('./config.json');
 const { request } = require('undici');
-// const fetch = require('node-fetch');
 
 const timewait = Number(30 * 60000);
 // (n*60000) donde n son los minutos y se transforman en ms
