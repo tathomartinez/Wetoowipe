@@ -1,23 +1,37 @@
 const utilChistes = require('../util/readChistes');
-const Discord = require('discord.js');
-const config = require('../../config');
+const { EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
+
 
 module.exports = {
-    name: 'chiste',
-    description: 'Sirve para contar chistes',
-    execute(message, args){
+	data: new SlashCommandBuilder()
+		.setName('chiste')
+		.setDescription('Sirve para contar chiste')
+		.addStringOption(option =>
+			option.setName('botenable')
+				.setDescription('Toggle botEnable')
+				.setRequired(false)
+				.addChoices(
+					{ name: 'Yes', value: 'ON' },
+					{ name: 'No', value: 'OFF' },
+				)),
+	async execute(interaction) {
 
-        let chistes = utilChistes.listaChistes;
-        let chiste = chistes[Math.floor(Math.random() * chistes.length)]
-        
-        const newEmbed = new Discord.MessageEmbed()
-        .setColor(config.EMBEDCOLOR)
-        .setTitle('El chiste de hoy')
-        .setDescription(chiste)
-        .setImage('https://render-us.worldofwarcraft.com/character/ragnaros/39/139444007-avatar.jpg?alt=wow/static/images/2d/avatar/4-1.jpg')
-        .setFooter('Bazinga!!!!!!');
-    
-        message.channel.send(newEmbed);
+		const chiste = obtenerChiste();
+		const embed = new EmbedBuilder()
+			.setColor('Blue')
+			.setTitle('El chiste de hoy')
+			.setDescription(chiste)
+			.setImage('https://render-us.worldofwarcraft.com/character/ragnaros/39/139444007-avatar.jpg?alt=wow/static/images/2d/avatar/4-1.jpg')
+			.setFooter({ text: 'Bazinga!!!!!!' });
 
-    }
-}
+		interaction.reply({ embeds: [embed] });
+
+		function obtenerChiste() {
+			console.log('se esta ejecutando');
+			const chistes = utilChistes.listaChistes;
+			return chistes[Math.floor(Math.random() * chistes.length)];
+		}
+
+	},
+};

@@ -1,52 +1,89 @@
-const Discord = require('discord.js');
-const discordConfig = require('./discordConfig.js');
-const config = require('./config.js');
-const client = new Discord.Client();
-const fs = require('fs');
-const timewait = Number(20 * 60000) // (n*60000) donde n son los minutos y se transforman en ms
+const { Client, Collection, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.MessageContent],
+});
+const fs = require('node:fs');
+const path = require('node:path');
+const managerInterval = require('./src/util/ManagerInterval');
+const { token, channelJoke } = require('./config.json');
+const { request } = require('undici');
 
-client.commands = new Discord.Collection();
+const timewait = Number(30 * 60000);
+// (n*60000) donde n son los minutos y se transforman en ms
 
-const commandFile = fs.readdirSync('./src/commands/').filter(file => file.endsWith('.js'))
-for (const file of commandFile) {
-    const command = require(`./src/commands/${file}`)
-    client.commands.set(command.name, command)
+// const timewait = Number(1 * 30000); // (n*60000) donde n son los minutos y se transforman en ms
+
+client.commands = new Collection();
+
+const commandsPath = path.join(__dirname, '/src/commands');
+const eventsPath = path.join(__dirname, '/src/events');
+
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+init();
+
+function init() {
+	resolverCommandFiles();
+	resolverEventsFile();
+	iniciarChistes();
 }
 
-client.once('ready', () => {
-    console.log('WORKS.....!!!!')
-});
+function iniciarChistes() {
+	console.log('Se inicia proceso de chistes');
+	const interval = setInterval(() => { imprimirChiste(client); }, timewait);
+	managerInterval.map.set('chistes', interval);
+	console.log('Se finaliza proceso de chistes');
+}
 
-client.on('message', message => {
-    if (!message.content.startsWith(config.PREFIJOBOT) || message.author.bot) return;
-    const args = message.content.slice(config.PREFIJOBOT.length).split(/ +/);
-    const command = args.shift().toLocaleLowerCase();
+function resolverCommandFiles() {
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		if ('data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}
 
-    switch (command) {
-        case 'hola':
-            client.commands.get(command).execute(message, args)
-            break;
-        case 'chiste':
-            client.commands.get(command).execute(message, args)
-            break;
-        case 'update':
-            client.commands.get(command).execute(message, args)
-            break;
-        case 'status':
-            client.commands.get(command).execute(message, args)
-            break;
-        case 'shutdown':
-            client.commands.get(command).execute(message, args)
-            break;
-        case 'chistedemon':
-            var interval = setInterval(function () {
-                client.commands.get('chiste').execute(message, args)
-            }, timewait);
-            break;
-        default:
-            break;
-    }
-    
-});
+function imprimirChiste(_client) {
+	const channel = _client.channels.cache.get(channelJoke);
+	// const channel = _client.channels.cache.get('868651189200379966');
+	const file = new AttachmentBuilder('./assets/chuck.jpg');
 
-client.login(discordConfig.TOKEN);
+	obtenerChiste().then(it => {
+		const embed = new EmbedBuilder()
+			.setColor('Blue')
+			.setTitle('El chiste de hoy')
+			.setDescription(it)
+			.setImage('attachment://chuck.jpg')
+			.setFooter({ text: 'Bazinga!!!!!!' });
+
+		channel.send({ embeds: [embed], files: [file] });
+	});
+
+}
+async function obtenerChiste() {
+	const catResult = await request('https://api.chucknorris.io/jokes/random');
+	const { value } = await catResult.body.json();
+	return value;
+}
+
+function resolverEventsFile() {
+	for (const file of eventFiles) {
+		const filePath = path.join(eventsPath, file);
+		const event = require(filePath);
+		if (event.once) {
+			client.once(event.name, (...args) => event.execute(...args));
+		} else {
+			client.on(event.name, (...args) => event.execute(...args));
+		}
+	}
+}
+
+// client.login(process.env.TOKEN);
+client.login(token);
