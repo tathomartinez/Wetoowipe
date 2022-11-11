@@ -1,21 +1,24 @@
 const Purga = {};
+const { channelTest } = require('../../config.json');
 const LinkDairo = require('../servicios/LinkDairo');
 const { whitelist } = require('../../assets/whiteList.json');
 
 Purga.deleteMessage = (channel, client) => {
 	channel.messages.fetch({ limit: 10 }).then(messages => {
-		console.log(`Received ${messages.size} messages`);
+		// console.log(`Received ${messages.size} messages`);
 		messages.forEach(message => {
-			if (!validateMessageWhitelist(message)) {
-				console.log('Se va a eliminar el mensaje con el id ', message.id);
-				channel.messages.delete(message.id);
-			} else {
+			if (validateMessageWhitelist(message) && !validarChannelTest(channel)) {
 				LinkDairo.writeMessage(message, client);
-				channel.messages.delete(message.id);
 			}
+			// console.log('Se va a eliminar el mensaje con el id ', message.id);
+			channel.messages.delete(message.id);
 		});
 	});
 };
+
+function validarChannelTest(channel) {
+	return channel.id == channelTest;
+}
 
 function validateMessageWhitelist(message) {
 	// console.log(message.content);

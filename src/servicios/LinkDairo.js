@@ -1,20 +1,27 @@
-const { channelTest } = require('../../config.json');
+const { channelLinkDairo } = require('../../config.json');
+// const { userMention } = require('discord.js');
 const LinkDairo = {};
 
 
 LinkDairo.writeMessage = (mensaje, client) => {
-	console.log(mensaje);
-	// console.log(client);
-	// console.log(client.channels);
-	// console.log(client.channels.cache.get(channelTest));
-	const channel = client.channels.cache.get(channelTest);
-	const output = 'Ofrenda suministrado por : ' + mensaje.author.username
-		+ '\nofrenda :\n'
-		+ mensaje.content;
+	try {
+		// console.log(mensaje);
+		// console.log(client);
+		// console.log(client.channels);
+		// console.log(client.channels.cache.get(channelTest));
+		const channel = client.channels.cache.get(channelLinkDairo);
+		const output =
+			`Ofrenda suministrado por : ${mensaje.author}
+			ofrenda :
+			${mensaje.content}`;
 
-	channel.send(output);
+		channel.send(output);
 
-	// const channel = _client.channels.cache.get(channelJoke);
+		// const channel = _client.channels.cache.get(channelJoke);
+	} catch (error) {
+		console.log(error);
+	}
+
 
 };
 module.exports = LinkDairo;
