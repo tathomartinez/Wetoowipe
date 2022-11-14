@@ -4,7 +4,7 @@ const LinkDairo = require('../servicios/LinkDairo');
 const { whitelist } = require('../../assets/whiteList.json');
 
 Purga.deleteMessage = (channel, client) => {
-	channel.messages.fetch({ limit: 10 }).then(messages => {
+	channel.messages.fetch({ limit: 100 }).then(messages => {
 		// console.log(`Received ${messages.size} messages`);
 		messages.forEach(message => {
 			if (validateMessageWhitelist(message) && !validarChannelTest(channel)) {
