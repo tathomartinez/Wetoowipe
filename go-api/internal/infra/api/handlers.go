@@ -2,11 +2,11 @@ package api
 
 import (
 	"encoding/json"
-	"log" // Importa el paquete log
-	"net/http"
 	"fmt"
 	"go-api/internal/app/saleslog" // Reemplaza con la ruta correcta
-	"go-api/internal/domain"     // Reemplaza con la ruta correcta
+	"go-api/internal/domain"       // Reemplaza con la ruta correcta
+	"log"                          // Importa el paquete log
+	"net/http"
 )
 
 type SalesLogHandler struct {
@@ -57,6 +57,10 @@ func (h *SalesLogHandler) LogHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Log registrado exitosamente para:", logEntry.DestinatarioID) // Log de éxito
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Log registrado exitosamente"))
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Log registrado exitosamente",
+	})
+
 }
