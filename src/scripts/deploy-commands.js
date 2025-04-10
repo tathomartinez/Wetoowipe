@@ -7,7 +7,7 @@ const { TOKEN, CLIENT_ID, GUILD_ID } = process.env;
 
 const commands = [];
 
-const commandsPath = path.join(__dirname, 'src', 'commands');
+const commandsPath = path.join(__dirname, '..', 'commands');
 
 function readCommands(dir) {
 	const files = fs.readdirSync(dir);

@@ -1,4 +1,5 @@
 .PHONY: deploy-commands
 
 deploy-commands:
-	docker-compose run --rm deploy-commands
+	docker-compose run --rm deploy-commands node src/scripts/deploy-commands.js
+

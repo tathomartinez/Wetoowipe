@@ -1,10 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
-const SimpsonService = require('../servicios/SimpsonService');
+const SimpsonService = require('../../servicios/SimpsonService');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('rs')
-		.setDescription('Capitulo aleatorio de los simpsons'),
+		.setName('randomsimpson')
+		.setDescription('Muestra quien es el equipodev'),
 	async execute(interaction) {
 		try {
 			await interaction.deferReply();

@@ -1,5 +1,6 @@
 const Purga = {};
-const { channelTest } = require('../../config.json');
+require('dotenv').config();
+const { channelTest } = process.env.CHANNEL_TEST;
 const LinkDairo = require('../servicios/LinkDairo');
 const { whitelist } = require('../../assets/whiteList.json');
 

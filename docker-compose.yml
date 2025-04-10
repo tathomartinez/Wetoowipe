@@ -19,4 +19,4 @@ services:
     working_dir: /usr/src/app
     volumes:
       - .:/usr/src/app
-    entrypoint: ["node", "deploy-commands.js"]
+    entrypoint: ["node", "src/scripts/deploy-commands.js"]
