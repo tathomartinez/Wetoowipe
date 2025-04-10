@@ -20,3 +20,11 @@ services:
     volumes:
       - .:/usr/src/app
     entrypoint: ["node", "src/scripts/deploy-commands.js"]
+
+  test:
+    build: .
+    container_name: discord-bot-test
+    env_file:
+      - .env
+    working_dir: /usr/src/app
+    command: ["npm", "test"]

@@ -1,5 +1,15 @@
-.PHONY: deploy-commands
+.PHONY: build test test-docker deploy full-deploy
 
-deploy-commands:
+build:
+	docker-compose build
+
+test:
+	npm test
+
+test-docker:
+	docker-compose run --rm test
+
+deploy: test-docker
 	docker-compose run --rm deploy-commands node src/scripts/deploy-commands.js
 
+full-deploy: build deploy
