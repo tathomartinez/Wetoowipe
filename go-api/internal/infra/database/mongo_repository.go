@@ -34,7 +34,7 @@ func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
 	// serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().
 		// ApplyURI("mongodb://root:example@mongodb:27017/")
-		ApplyURI("mongodb://root:example@localhost:27017/")
+		ApplyURI("mongodb://root:example@mongodb:27017/")
 		// SetServerAPIOptions(serverAPI).
 		// SetConnectTimeout(10 * time.Second).
 		// SetServerSelectionTimeout(10 * time.Second)
