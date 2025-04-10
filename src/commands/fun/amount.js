@@ -50,15 +50,15 @@ async function logTransaction(valor, destinatario) {
     const API_TIMEOUT = 8000; // 8 segundos
     const apiUrl = process.env.GO_API_URL || 'http://go-api:8080/log';
 
-    const payload = {
-        amount: valor,
-        recipient: destinatario.id,
-        timestamp: new Date().toISOString(),
-        // Generar hash de seguridad
-        hash: crypto.createHash('sha256')
-            .update(`${valor}-${destinatario.id}-${process.env.API_SECRET}`)
-            .digest('hex')
-    };
+	const payload = {
+		fecha: new Date().toISOString(),
+		valor: valor,
+		destinatario: destinatario.username,
+		destinatario_id: destinatario.id,
+		sha: crypto.createHash('sha256')
+			.update(`${valor}-${destinatario.id}-${process.env.API_SECRET}`)
+			.digest('hex')
+	};
 
     try {
         // Usando AbortController nativo de Node.js
