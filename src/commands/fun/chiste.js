@@ -1,4 +1,4 @@
-const utilChistes = require('../../util/readChistes');
+const jokeReader = require('../../services/jokeReader');
 const { EmbedBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');
 
@@ -29,7 +29,7 @@ module.exports = {
 
 		function obtenerChiste() {
 			console.log('se esta ejecutando');
-			const chistes = utilChistes.listaChistes;
+			const chistes = jokeReader.getJokes();
 			return chistes[Math.floor(Math.random() * chistes.length)];
 		}
 

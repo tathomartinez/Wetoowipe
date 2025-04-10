@@ -16,4 +16,5 @@ module.exports = {
 	name: 'chistes',
 	description: 'chistes',
 	listaChistes: chistes,
+	getJokes: () => chistes,
 };
