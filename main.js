@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { Client, Collection, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const client = new Client({
 	intents: [
@@ -7,7 +9,9 @@ const client = new Client({
 const fs = require('node:fs');
 const path = require('node:path');
 const managerInterval = require('./src/util/ManagerInterval');
-const { token, channelJoke } = require('./config.json');
+const token = process.env.TOKEN;
+const channelJoke = process.env.CHANNEL_JOKE;
+
 const { request } = require('undici');
 
 const timewait = Number(30 * 60000);
