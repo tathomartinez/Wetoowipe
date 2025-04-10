@@ -9,7 +9,7 @@ module.exports = {
 		try {
 			await interaction.deferReply();
 			// await wait(2000);
-			await interaction.editReply(`Obviamente yo soy <@250431644568125441> el equipodev PENDEJO`);
+			await interaction.editReply(`Obviamente yo soy Tathito`);
 			// await interaction.followUp({ content: 'PREFIJOBOT' });
 			// const message = await interaction.fetchReply();
 			// console.log(message);

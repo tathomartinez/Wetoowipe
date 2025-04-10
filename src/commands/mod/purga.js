@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
-const Purga = require('../../chistes/Purga');
-// const wait = require('node:timers/promises').setTimeout;
+const Purga = require('../../services/messageCleaner.js');
+const { isAuthorized } = require('../../util/permission');
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -9,6 +10,18 @@ module.exports = {
 	async execute(interaction) {
 		try {
 			console.log('Execute eliminar mensajes');
+			if (!isAuthorized(interaction.user.id)) {
+				return interaction.reply({
+					content: '⛔ No tienes permiso para usar este comando.',
+					ephemeral: true,
+				});
+			}
+			// if (!interaction.member.permissions.has('ManageMessages')) {
+			// 	return interaction.reply({
+			// 	  content: 'Necesitas permiso de ManageMessages para usar este comando.',
+			// 	  ephemeral: true,
+			// 	});
+			//   }
 			await interaction.deferReply();
 			// console.log(interaction);
 			const { channelId } = interaction;
