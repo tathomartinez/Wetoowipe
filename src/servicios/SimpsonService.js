@@ -1,5 +1,5 @@
 const { request } = require('undici');
-// const { userMention } = require('discord.js');
+
 const SimpsonService = {};
 
 SimpsonService.getRandomEpisode = async () => {
@@ -7,4 +7,5 @@ SimpsonService.getRandomEpisode = async () => {
 	const value = await call.body.json();
 	return value;
 };
+
 module.exports = SimpsonService;
