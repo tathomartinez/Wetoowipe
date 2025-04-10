@@ -1,20 +1,15 @@
 const fs = require('fs');
-const readline = require('readline');
+const path = require('path');
 
-const chistes = [];
+const chistesPath = path.join(__dirname, '../data/chistes.txt');
 
-const readInterface = readline.createInterface({
-	input: fs.createReadStream('./src/data/chistes.txt'),
-	console: false,
-});
+// Leemos todo de una
+const contenido = fs.readFileSync(chistesPath, 'utf-8');
 
-readInterface.on('line', line => {
-	chistes.push(line);
-});
+// Lo separamos por líneas
+const chistes = contenido.split('\n').filter(line => line.trim().length > 0);
 
 module.exports = {
-	name: 'chistes',
-	description: 'chistes',
 	listaChistes: chistes,
 	getJokes: () => chistes,
 };
