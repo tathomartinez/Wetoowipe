@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   discord-bot:
@@ -28,14 +28,69 @@ services:
       - .env
     working_dir: /usr/src/app
     command: ["npm", "run", "test:ci"]
-  
+
+  mongodb:
+    image: mongo:latest
+    restart: always
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root # <- Se carga desde .env
+      MONGO_INITDB_ROOT_PASSWORD: example # <- Se carga desde .env
+      # MONGO_INITDB_DATABASE: devdb
+      
+      # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME} # <- Se carga desde .env
+      # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD} # <- Se carga desde .env
+
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+    networks:
+      - my_network
+
   go-api:
-    image: golang:latest
-    container_name: go-api
+    build:
+      context: ./go-api
+      dockerfile: Dockerfile
+    environment:
+      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@${MONGO_DATABASE}:27017/${MONGO_DATABASE}?authSource=admin
+      - MONGO_AUTH_DB=admin
+      - SECRET_KEY=${SECRET_KEY}
     ports:
       - "8080:8080"
-    volumes:
-      - ./go-api:/app
-    working_dir: /app
-    command: ["go", "run", "main.go"]
+    depends_on:
+      mongodb:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - my_network
+
+  db-client:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    volumes:
+      - ./data:/data/
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - my_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  my_network:
