@@ -27,4 +27,4 @@ services:
     env_file:
       - .env
     working_dir: /usr/src/app
-    command: ["npm", "test"]
+    command: ["npm", "run", "test:ci"]
