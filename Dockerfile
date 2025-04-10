@@ -1,6 +1,10 @@
-FROM node:alpine
-WORKDIR /usr/src/app
+FROM node:23-alpine
+
+WORKDIR /app
+
 COPY package*.json ./
-RUN npm install
+RUN npm ci --omit=dev
+
 COPY . .
-CMD ["node","./main.js"]
+
+CMD ["node", "main.js"]
