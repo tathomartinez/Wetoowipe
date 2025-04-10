@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   discord-bot:
     build: .
@@ -36,12 +34,12 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./data:/data/
+      - ./data:/data/db
+      - ./init-mongo.d:/docker-entrypoint-initdb.d/:ro
     environment:
       MONGO_INITDB_ROOT_USERNAME: root # <- Se carga desde .env
       MONGO_INITDB_ROOT_PASSWORD: example # <- Se carga desde .env
-      # MONGO_INITDB_DATABASE: devdb
-      
+      MONGO_INITDB_DATABASE: devdb
       # MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME} # <- Se carga desde .env
       # MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD} # <- Se carga desde .env
 
@@ -57,9 +55,20 @@ services:
     build:
       context: ./go-api
       dockerfile: Dockerfile
+    # environment:
+    #   # - MONGO_URI=mongodb://apiUser:apiPassword@mongodb:27017/devdb?authSource=devdb
+    #   - MONGO_URI=mongodb://root:example@mongodb:27017/devdb?authSource=admin
+    #   - MONGO_AUTH_DB=admin
+    #   - MONGO_DATABASE=devdb
+    #   - SECRET_KEY=${SECRET_KEY}
     environment:
-      - MONGO_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@${MONGO_DATABASE}:27017/${MONGO_DATABASE}?authSource=admin
-      - MONGO_AUTH_DB=admin
+      # - MONGO_URI=mongodb+srv://root:example@mongodb:27017/
+      - MONGO_URI=mongodb://root:example@mongodb:27017/?retryWrites=true&w=majority?tls=false
+      # - MONGO_URI=mongodb://root:example@mongodb:27017/?retryWrites=true&w=majority
+      # - MONGO_URI=mongodb+srv://root:example@mongodb:27017/?retryWrites=true&w=majority
+      # - MONGO_URI=mongodb://apiUser:apiPassword@mongodb:27017/devdb?authSource=admin
+      - MONGO_AUTH_DB=devdb
+      - MONGO_DATABASE=devdb
       - SECRET_KEY=${SECRET_KEY}
     ports:
       - "8080:8080"

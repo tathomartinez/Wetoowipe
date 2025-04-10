@@ -1,14 +1,13 @@
 package main
 
 import (
-    "context"
-    "log"
-    "net/http"
-    "os"
+	"context"
 	"fmt"
-	"go-api/internal/app/saleslog"      // Reemplaza con la ruta correcta
-	"go-api/internal/infra/api"         // Reemplaza con la ruta correcta
-	"go-api/internal/infra/database"    // Reemplaza con la ruta correcta
+	"go-api/internal/app/saleslog"   // Reemplaza con la ruta correcta
+	"go-api/internal/infra/api"      // Reemplaza con la ruta correcta
+	"go-api/internal/infra/database" // Reemplaza con la ruta correcta
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -19,7 +18,8 @@ func main() {
 	}
 	// defer mongoRepo.client.Disconnect(ctx) // Elimina esta línea
 
-	secretKey := os.Getenv("SECRET_KEY")
+	// secretKey := os.Getenv("SECRET_KEY")
+	secretKey := "12345678"
 
 	salesLogService := saleslog.NewSalesLogService(mongoRepo, secretKey)
 	salesLogHandler := api.NewSalesLogHandler(salesLogService)
