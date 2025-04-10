@@ -1,100 +1,121 @@
-const fetch = import('node-fetch');
+require('dotenv').config();
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const config = require('../../config/config');
-// const discordConfig = require('../../discordConfig');
-const Discord = require('discord.js');
-const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-
 		.setName('update')
-		.setDescription('Sirve para actualizar roles por io'),
-	async execute(message) {
-		const rolesMitycPlus = message.member.guild.roles.cache.filter(item => item.name.startsWith(config.SUFIJO_ROL));
+		.setDescription('Actualiza tu rol según tu score de Raider.IO')
+		.addStringOption(option =>
+			option.setName('url')
+				.setDescription('URL de tu perfil Raider.IO')
+				.setRequired(true),
+		),
 
-		const urlArgs = args[0].substring(args[0].indexOf('characters') + 11).split('/');
-		const region = urlArgs[0];
-		const realm = urlArgs[1];
-		const name = urlArgs[2];
-		const url = `${config.URL_UPDATE}region=${region}&realm=${realm}&name=${name}&fields=${config.RAIDERIO_FIELDS}`;
-		const roles = message.member.guild.roles.cache;
+	async execute(interaction) {
+		const urlInput = interaction.options.getString('url');
+		await interaction.deferReply({ flags: 64 });
 
-		fetch(url)
-			.then(response => response.json())
-			.then(json => {
-				const score = json.mythic_plus_scores.all;
-				const rol = String(config.SUFIJO_ROL + Math.trunc(parseFloat(json.mythic_plus_scores.all) / 100) * 100);
-				const rolValido = roles.find(item => String(item.name) === String(rol));
+		try {
+			const member = interaction.member;
+			const roles = member.guild.roles.cache;
+			const rolesMitycPlus = roles.filter(role => role.name.startsWith(config.SUFIJO_ROL));
 
-				// if(!(message.member.roles.cache.has(discordConfig.MEMBERHASH))){
-				//     message.member.roles.add(discordConfig.MEMBERHASH)
-				// }
+			console.log(`[UPDATE] URL recibida: ${urlInput}`);
 
-				if (rolValido) {
-					if (!(message.member.roles.cache.find(r => String(r.name) === String(rol)))) {
-						rolesMitycPlus
-							.forEach(role => {
-								if (parseInt(role.name) <= parseInt(rol)) {
-									message.member.roles.remove(role.id);
-								}
-							});
+			const { region, realm, name } = parseRaiderUrl(urlInput);
+			console.log(`[UPDATE] Datos extraídos -> Región: ${region}, Reino: ${realm}, Nombre: ${name}`);
 
-						message.member.roles.add(rolValido);
-					}
-				} else {
-					crearRol(rol).then((item => {
+			const scoreData = await fetchRaiderScore(region, realm, name);
+			console.log('[UPDATE] Respuesta de Raider.IO:', scoreData);
 
-						rolesMitycPlus
-							.forEach(role => {
-								if (parseInt(role.name) <= parseInt(rol)) {
-									message.member.roles.remove(role.id);
-								}
-							});
+			const score = scoreData.mythic_plus_scores_by_season?.[0]?.scores?.all;
+			if (!score) throw new Error('No se pudo obtener el puntaje actual de M+');
 
-						message.member.roles.add(item.id);
-					}), error => console.log(error));
-					console.log(`>>>> Se esta creando un nuevo rol: ${rol}`);
-				}
+			const scoreRol = `${config.SUFIJO_ROL}${Math.trunc(score / 100) * 100}`;
 
-				message.member.setNickname(`${name}-${realm.charAt(0).toUpperCase()}${realm.slice(1)}`);
+			console.log(`[UPDATE] Puntaje: ${score} -> Rol asignado: ${scoreRol}`);
 
-				const newEmbed = new Discord.MessageEmbed()
-					.setColor(config.EMBEDCOLOR)
-					.setTitle('Gracias por actualizar')
-					.setDescription(`Hey tu rank es: ${score} tu nuevo rol: ${rol}`)
-					.setImage('https://render-us.worldofwarcraft.com/character/ragnaros/39/139444007-avatar.jpg?alt=wow/static/images/2d/avatar/4-1.jpg')
-					.setFooter('Que el destino te lleve con bien joven adalid!!!!!!');
+			const rolValido = roles.find(role => role.name === scoreRol);
 
-				message.channel.send(newEmbed);
+			await removeOldRoles(member, rolesMitycPlus, scoreRol);
 
-			});
-
-		function crearRol(_name) {
-			const newRol = message.guild.roles.create({
-				data: {
-					name: _name,
-					color: colorHEX(),
-					permissions: 0,
-				},
-				reason: 'we needed a role for Super Cool People',
-			}).then(role => { return role; });
-
-			return newRol;
-		}
-
-		function generarLetra() {
-			const letras = ['a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-			const numero = (Math.random() * 15).toFixed(0);
-			return letras[numero];
-		}
-
-		function colorHEX() {
-			let color = '';
-			for (let i = 0; i < 6; i++) {
-				color = color + generarLetra();
+			if (rolValido) {
+				console.log(`[UPDATE] Rol existente encontrado: ${rolValido.name}`);
+				await member.roles.add(rolValido);
+			} else {
+				console.log(`[UPDATE] Rol no encontrado. Creando nuevo rol: ${scoreRol}`);
+				const newRole = await createRole(interaction.guild, scoreRol);
+				console.log(`[UPDATE] Nuevo rol creado: ${newRole.name}`);
+				await member.roles.add(newRole);
 			}
-			return '#' + color;
-		}
 
+			const newNick = `${name}-${capitalize(realm)}`;
+			console.log(`[UPDATE] Nickname actualizado a: ${newNick}`);
+			await member.setNickname(newNick);
+
+			const embed = new EmbedBuilder()
+				.setColor(config.EMBEDCOLOR || 'Blue')
+				.setTitle('✅ Rol actualizado')
+				.setDescription(`Puntaje: **${score}**\nNuevo rol: **${scoreRol}**`)
+				.setFooter({ text: '¡Que el destino te lleve con bien, joven adalid!' });
+
+			await interaction.editReply({ embeds: [embed] });
+
+		} catch (err) {
+			console.error('[UPDATE] ❌ Error general:', err);
+			await interaction.editReply('❌ Hubo un error actualizando tu información. Verifica el enlace.');
+		}
 	},
 };
+
+function parseRaiderUrl(url) {
+	try {
+		const parts = url.split('/characters/')[1].split('/');
+		return {
+			region: parts[0],
+			realm: parts[1],
+			name: parts[2],
+		};
+	} catch {
+		throw new Error('URL inválida');
+	}
+}
+
+async function fetchRaiderScore(region, realm, name) {
+	const url = `${config.URL_UPDATE}region=${region}&realm=${realm}&name=${name}&fields=${config.RAIDERIO_FIELDS}&access_key=${process.env.RAIDERIO_KEY}`;
+	console.log(`[FETCH] Llamando a Raider.IO: ${url}`);
+	const response = await fetch(url);
+	if (!response.ok) throw new Error(`Error de API: ${response.status}`);
+	const data = await response.json();
+	return data;
+}
+
+async function removeOldRoles(member, roleList, scoreRol) {
+	for (const role of roleList.values()) {
+		if (role.name !== scoreRol && parseInt(role.name) <= parseInt(scoreRol)) {
+			console.log(`[ROLES] Eliminando rol anterior: ${role.name}`);
+			await member.roles.remove(role.id);
+		}
+	}
+}
+
+function capitalize(str) {
+	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+async function createRole(guild, name) {
+	const newRole = await guild.roles.create({
+		name,
+		color: randomHexColor(),
+		permissions: [],
+		reason: 'Rol creado automáticamente por el bot',
+	});
+	return newRole;
+}
+
+function randomHexColor() {
+	const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#57FF33']; // Conjunto de colores
+	return colors[Math.floor(Math.random() * colors.length)];
+}

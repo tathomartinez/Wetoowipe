@@ -3,6 +3,9 @@
 build:
 	docker-compose build
 
+launch:
+	docker-compose up --build -d
+
 test:
 	npm test
 
