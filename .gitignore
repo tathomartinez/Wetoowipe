@@ -94,3 +94,5 @@ lerna-debug.log
 .DS_Store
 Thumbs.db
 .vscode/launch.json
+
+data

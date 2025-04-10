@@ -1,10 +1,16 @@
-.PHONY: build test test-docker deploy full-deploy
+.PHONY: build rebuild launch test test-docker deploy full-deploy \
+        bot bot-rebuild commands commands-rebuild go-api go-api-rebuild \
+        mongo mongo-rebuild mongo-client mongo-client-rebuild
 
+# General commands
 build:
 	docker-compose build
 
-launch:
+rebuild:
 	docker-compose up --build -d
+
+launch:
+	docker-compose up -d
 
 test:
 	npm test
@@ -16,3 +22,34 @@ deploy: test-docker
 	docker-compose run --rm deploy-commands node src/scripts/deploy-commands.js
 
 full-deploy: build deploy
+
+# Individual service commands
+bot:
+	docker-compose up -d discord-bot
+
+bot-rebuild:
+	docker-compose up --build -d discord-bot
+
+commands:
+	docker-compose run --rm deploy-commands
+
+commands-rebuild:
+	docker-compose build deploy-commands && docker-compose run --rm deploy-commands
+
+go-api:
+	docker-compose up -d go-api
+
+go-api-rebuild:
+	docker-compose up --build -d go-api
+
+mongo:
+	docker-compose up -d mongodb
+
+mongo-rebuild:
+	docker-compose up --build -d mongodb
+
+mongo-client:
+	docker-compose up -d db-client
+
+mongo-client-rebuild:
+	docker-compose up --build -d db-client
