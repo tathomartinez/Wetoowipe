@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const Purga = require('../chistes/Purga');
+const Purga = require('../../chistes/Purga');
 // const wait = require('node:timers/promises').setTimeout;
 
 module.exports = {

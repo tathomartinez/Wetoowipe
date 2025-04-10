@@ -11,3 +11,12 @@ services:
       - .:/usr/src/app
     working_dir: /usr/src/app
     command: ["node", "main.js"]
+
+  deploy-commands:
+    build: .
+    env_file:
+      - .env
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+    entrypoint: ["node", "deploy-commands.js"]

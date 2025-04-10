@@ -1,0 +1,4 @@
+.PHONY: deploy-commands
+
+deploy-commands:
+	docker-compose run --rm deploy-commands
