@@ -12,50 +12,39 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"go-api/internal/app/saleslog"
-	"go-api/internal/domain"
+	"go-api/internal/domain" // Ensure domain.User is defined in this package
 	// "go.mongodb.org/mongo-driver/bson"
 	// "go.mongodb.org/mongo-driver/mongo"
 	// "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoDBRepository struct {
-	client         *mongo.Client
-	databaseName   string
-	collectionName string
+	client                 *mongo.Client
+	databaseName           string
+	collectionSales        string
+	collectionUsers        string
+	collectionTransactions string
 }
 
 func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
-	// uri := os.Getenv("MONGODB_URI")
-	// if uri == "" {
-	// 	return nil, fmt.Errorf("MONGODB_URI environment variable not set")
-	// }
-
-	// Configuración de la API estable como en la documentación
-	// serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().
-		// ApplyURI("mongodb://root:example@mongodb:27017/")
-		ApplyURI("mongodb://root:example@mongodb:27017/")
-		// SetServerAPIOptions(serverAPI).
-		// SetConnectTimeout(10 * time.Second).
-		// SetServerSelectionTimeout(10 * time.Second)
-
-	opts = opts.SetAuth(options.Credential{
-		Username: "root",
-		Password: "example",
-	})
+		ApplyURI("mongodb://root:example@mongodb:27017/").
+		SetAuth(options.Credential{
+			Username: "root",
+			Password: "example",
+		})
 
 	client, err := mongo.Connect(opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 
-	// Realizar ping exactamente como en la documentación
-	var result bson.M
+	// Verificar conexión
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	if err := client.Database("admin").RunCommand(pingCtx, bson.D{{"ping", 1}}).Decode(&result); err != nil {
-		_ = client.Disconnect(ctx) // Limpiar conexión si falla
+	if err := client.Ping(pingCtx, nil); err != nil {
+		_ = client.Disconnect(ctx)
 		return nil, fmt.Errorf("failed to ping MongoDB: %w", err)
 	}
 
@@ -63,21 +52,131 @@ func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
 
 	databaseName := os.Getenv("MONGO_DATABASE")
 	if databaseName == "" {
-		databaseName = "defaultdb"
+		databaseName = "bankdb"
+	}
+
+	// Crear índices únicos
+	db := client.Database(databaseName)
+
+	// Índice único para numero_cuenta en users
+	usersCollection := db.Collection("users")
+	_, err = usersCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "numero_cuenta", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create unique index for numero_cuenta: %w", err)
+	}
+
+	// Índice único para referencia en transactions
+	transactionsCollection := db.Collection("transactions")
+	_, err = transactionsCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "referencia", Value: 1}},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create unique index for referencia: %w", err)
 	}
 
 	return &MongoDBRepository{
-		client:         client,
-		databaseName:   databaseName,
-		collectionName: "sales_logs",
+		client:                 client,
+		databaseName:           databaseName,
+		collectionSales:        "sales_logs",
+		collectionUsers:        "users",
+		collectionTransactions: "transactions",
 	}, nil
+}
+
+// Operaciones de usuario
+func (r *MongoDBRepository) CreateUser(ctx context.Context, user *domain.User) error {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionUsers)
+
+	// Establecer fecha de creación
+	user.FechaCreacion = time.Now()
+
+	_, err := collection.InsertOne(ctx, user)
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MongoDBRepository) GetUserByAccountNumber(ctx context.Context, numeroCuenta string) (*domain.User, error) {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionUsers)
+
+	var user domain.User
+	err := collection.FindOne(ctx, bson.M{"numero_cuenta": numeroCuenta}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	return &user, nil
+}
+
+func (r *MongoDBRepository) UpdateUserBalance(ctx context.Context, numeroCuenta string, newBalance float64) error {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionUsers)
+
+	_, err := collection.UpdateOne(
+		ctx,
+		bson.M{"numero_cuenta": numeroCuenta},
+		bson.M{"$set": bson.M{"saldo": newBalance}},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update user balance: %w", err)
+	}
+
+	return nil
+}
+
+// Operaciones de transacciones
+func (r *MongoDBRepository) CreateTransaction(ctx context.Context, transaction *domain.Transaction) error {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionTransactions)
+
+	// Establecer fecha de transacción
+	transaction.Fecha = time.Now()
+	transaction.ID = bson.NewObjectID()
+
+	_, err := collection.InsertOne(ctx, transaction)
+	if err != nil {
+		return fmt.Errorf("failed to create transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (r *MongoDBRepository) GetTransactionsByAccount(ctx context.Context, numeroCuenta string) ([]domain.Transaction, error) {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionTransactions)
+
+	filter := bson.M{
+		"$or": []bson.M{
+			{"cuenta_origen": numeroCuenta},
+			{"cuenta_destino": numeroCuenta},
+		},
+	}
+
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find transactions: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var transactions []domain.Transaction
+	if err := cursor.All(ctx, &transactions); err != nil {
+		return nil, fmt.Errorf("failed to decode transactions: %w", err)
+	}
+
+	return transactions, nil
 }
 
 func (r *MongoDBRepository) SaveLog(logEntry domain.SaleLogEntry) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
+	collection := r.client.Database(r.databaseName).Collection(r.collectionSales)
 	_, err := collection.InsertOne(ctx, logEntry)
 	if err != nil {
 		log.Printf("Error al guardar log: %v", err)
@@ -92,7 +191,7 @@ func (r *MongoDBRepository) GetLogByID(id string) (*domain.SaleLogEntry, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
+	collection := r.client.Database(r.databaseName).Collection(r.collectionSales)
 	var logEntry domain.SaleLogEntry
 
 	err := collection.FindOne(ctx, bson.M{"destinatario_id": id}).Decode(&logEntry)
@@ -108,6 +207,30 @@ func (r *MongoDBRepository) GetLogByID(id string) (*domain.SaleLogEntry, error) 
 
 func (r *MongoDBRepository) Disconnect(ctx context.Context) error {
 	return r.client.Disconnect(ctx)
+}
+
+func (r *MongoDBRepository) GetTransactionsByAccountNumber(ctx context.Context, numeroCuenta string) ([]domain.Transaction, error) {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionTransactions)
+
+	filter := bson.M{
+		"$or": []bson.M{
+			{"cuenta_origen": numeroCuenta},
+			{"cuenta_destino": numeroCuenta},
+		},
+	}
+
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find transactions: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var transactions []domain.Transaction
+	if err := cursor.All(ctx, &transactions); err != nil {
+		return nil, fmt.Errorf("failed to decode transactions: %w", err)
+	}
+
+	return transactions, nil
 }
 
 var _ saleslog.Repository = &MongoDBRepository{}
