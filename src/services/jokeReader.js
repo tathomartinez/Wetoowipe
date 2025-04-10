@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const chistesPath = path.join(__dirname, '../data/chistes.txt');
+const chistesPath = path.join(__dirname, './chistes.txt');
 
 // Leemos todo de una
 const contenido = fs.readFileSync(chistesPath, 'utf-8');

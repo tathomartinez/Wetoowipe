@@ -9,6 +9,8 @@ services:
       - .:/usr/src/app
     working_dir: /usr/src/app
     command: ["node", "main.js"]
+    networks:
+      - my_network  # <-- Agrega esto
 
   deploy-commands:
     build: .

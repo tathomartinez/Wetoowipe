@@ -1,86 +1,94 @@
 require('dotenv').config();
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const crypto = require('crypto'); // Importar el módulo crypto para generar el SHA
+const crypto = require('crypto');
 
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('amount')
-		.setDescription('Envía una cantidad de dinero a otro usuario y guarda el log.')
-		.addIntegerOption(option =>
-			option.setName('valor')
-				.setDescription('Valor a enviar')
-				.setRequired(true),
-		)
-		.addUserOption(option =>
-			option.setName('destinatario')
-				.setDescription('Usuario destinatario')
-				.setRequired(true),
-		),
+    data: new SlashCommandBuilder()
+        .setName('amount')
+        .setDescription('Envía una cantidad de dinero a otro usuario')
+        .addIntegerOption(option =>
+            option.setName('valor')
+                .setDescription('Cantidad a transferir')
+                .setRequired(true)
+                .setMinValue(1)
+        )
+        .addUserOption(option =>
+            option.setName('destinatario')
+                .setDescription('Usuario que recibirá el dinero')
+                .setRequired(true)
+        ),
 
-	async execute(interaction) {
-		const valor = interaction.options.getInteger('valor');
-		const destinatario = interaction.options.getUser('destinatario');
+    async execute(interaction) {
+        await interaction.deferReply({ ephemeral: true });
 
-		// Defer la respuesta para que el bot procese el comando
-		await interaction.deferReply({ ephemeral: true });
+        try {
+            const valor = interaction.options.getInteger('valor');
+            const destinatario = interaction.options.getUser('destinatario');
 
-		try {
-			// Verificar que el valor sea válido
-			if (valor <= 0) {
-				await interaction.editReply('❌ El valor debe ser mayor que 0.');
-				return;
-			}
+            // Validación mejorada
+            if (valor <= 0) return await interaction.editReply('❌ El monto debe ser positivo');
 
-			// Crear el mensaje de confirmación para el usuario
-			const embed = new EmbedBuilder()
-				.setColor('Green')
-				.setTitle('💸 Transferencia registrada')
-				.setDescription(`Has enviado **${valor}** a ${destinatario.username}.`)
-				.setFooter({ text: '¡Gracias por usar nuestro sistema de transferencias!' });
+            // Registrar transacción (versión simplificada sin node-abort-controller)
+            await logTransaction(valor, destinatario);
 
-			// Enviar respuesta al usuario
-			await interaction.editReply({ embeds: [embed] });
+            // Respuesta al usuario
+            const embed = new EmbedBuilder()
+                .setColor('#00FF00')
+                .setTitle('✅ Transferencia exitosa')
+                .setDescription(`Has enviado $${valor} a ${destinatario.username}`);
 
-			// Guardar el log en el servidor del bot (API Go)
-			await logTransaction(valor, destinatario);
+            await interaction.editReply({ embeds: [embed] });
 
-		} catch (err) {
-			console.error('[AMOUNT] ❌ Error:', err);
-			await interaction.editReply('❌ Hubo un error procesando tu solicitud.');
-		}
-	},
+        } catch (error) {
+            console.error('Error en comando amount:', error);
+            await interaction.editReply('❌ Error al procesar la transferencia');
+        }
+    }
 };
 
-// Función para registrar la transacción en la API Go
 async function logTransaction(valor, destinatario) {
-	const timestamp = new Date().toISOString();
-	const dataToHash = `${timestamp}-${valor}-${destinatario.id}-${process.env.SECRET_KEY || 'default_secret'}`; // Incluye una clave secreta para mayor seguridad
-	const sha256Hash = crypto.createHash('sha256').update(dataToHash).digest('hex');
+    const API_TIMEOUT = 8000; // 8 segundos
+    const apiUrl = process.env.GO_API_URL || 'http://go-api:8080/log';
 
-	const logData = {
-		fecha: timestamp,
-		valor: valor,
-		destinatario: destinatario.username,
-		destinatario_id: destinatario.id,
-		sha: sha256Hash,
-	};
+    const payload = {
+        amount: valor,
+        recipient: destinatario.id,
+        timestamp: new Date().toISOString(),
+        // Generar hash de seguridad
+        hash: crypto.createHash('sha256')
+            .update(`${valor}-${destinatario.id}-${process.env.API_SECRET}`)
+            .digest('hex')
+    };
 
-	try {
-		const response = await fetch('http://go-api:8080/log', { // Utiliza el nombre del servicio 'go-api'
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(logData),
-		});
+    try {
+        // Usando AbortController nativo de Node.js
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), API_TIMEOUT);
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.error(`[AMOUNT] ❌ Error al enviar el log a la API Go: ${response.status} - ${errorText}`);
-		} else {
-			console.log('[AMOUNT] ✅ Transacción enviada a la API Go para log');
-		}
-	} catch (error) {
-		console.error('[AMOUNT] ❌ Error al comunicarse con la API Go:', error);
-	}
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.API_TOKEN}`
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP ${response.status}`);
+        }
+
+        return await response.json();
+
+    } catch (error) {
+        console.error('Error al registrar transacción:', {
+            error: error.message,
+            payload
+        });
+        throw error;
+    }
 }
