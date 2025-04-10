@@ -1,5 +1,5 @@
 const fetch = import('node-fetch');
-const config = require('../../config');
+const config = require('../../config/config');
 // const discordConfig = require('../../discordConfig');
 const Discord = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');

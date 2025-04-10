@@ -1,4 +1,5 @@
-const { channelLinkDairo } = require('../../config.json');
+require('dotenv').config();
+const { channelLinkDairo } = process.env.CHANNEL_LINK_DAIRO;
 // const { userMention } = require('discord.js');
 const LinkDairo = {};
 
