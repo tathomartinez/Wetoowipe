@@ -1,38 +1,47 @@
-const { REST, Routes } = require('discord.js');
-// const { clientId, guildId, TOKEN } = require('./config.json');
-
 require('dotenv').config();
+const { REST, Routes } = require('discord.js');
+const fs = require('node:fs');
+const path = require('node:path');
+
 const { TOKEN, CLIENT_ID, GUILD_ID } = process.env;
 
-const fs = require('node:fs');
-
 const commands = [];
-// Grab all the command files from the commands directory you created earlier
-const commandFiles = fs.readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
-// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
-for (const file of commandFiles) {
-	const command = require(`./src/commands/${file}`);
-	commands.push(command.data.toJSON());
+const commandsPath = path.join(__dirname, 'src', 'commands');
+
+function readCommands(dir) {
+	const files = fs.readdirSync(dir);
+	for (const file of files) {
+		const fullPath = path.join(dir, file);
+		const stat = fs.statSync(fullPath);
+		if (stat.isDirectory()) {
+			readCommands(fullPath);
+		} else if (file.endsWith('.js')) {
+			const command = require(fullPath);
+			if (command?.data?.toJSON) {
+				commands.push(command.data.toJSON());
+			} else {
+				console.warn(`[WARNING] Skipped ${file} - missing .data.toJSON()`);
+			}
+		}
+	}
 }
 
-// Construct and prepare an instance of the REST module
+readCommands(commandsPath);
+
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-// and deploy your commands!
 (async () => {
 	try {
-		console.log(`Started refreshing ${commands.length} application (/) commands.`);
+		console.log(`[DEPLOY] Subiendo ${commands.length} comandos a Discord...`);
 
-		// The put method is used to fully refresh all commands in the guild with the current set
 		const data = await rest.put(
 			Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
 			{ body: commands },
 		);
 
-		console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		console.log(`[DEPLOY] Completado con ${data.length} comandos registrados.`);
 	} catch (error) {
-		// And of course, make sure you catch and log any errors!
-		console.error(error);
+		console.error('[DEPLOY] Error al registrar comandos:', error);
 	}
 })();

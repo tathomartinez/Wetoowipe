@@ -1,4 +1,4 @@
-const utilChistes = require('../util/readChistes');
+const utilChistes = require('../../util/readChistes');
 const { EmbedBuilder } = require('discord.js');
 const { SlashCommandBuilder } = require('discord.js');
 
