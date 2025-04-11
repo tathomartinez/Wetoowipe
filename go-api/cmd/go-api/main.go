@@ -48,6 +48,7 @@ func main() {
 	// Rutas bancarias
 	apiV1.HandleFunc("/accounts", bankHandler.CreateAccount).Methods("POST")
 	apiV1.HandleFunc("/accounts/{accountNumber}", bankHandler.GetAccount).Methods("GET")
+	apiV1.HandleFunc("/accounts/{accountNumber}/balance", bankHandler.GetBalanceAccount).Methods("GET")
 	apiV1.HandleFunc("/accounts/{accountNumber}/deposit", bankHandler.Deposit).Methods("POST")
 	// TODO: Descomentar las siguientes líneas si necesitas las funcionalidades de retiro y transferencia
 	// apiV1.HandleFunc("/accounts/{accountNumber}/withdraw", bankHandler.Withdraw).Methods("POST")

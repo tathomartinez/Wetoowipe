@@ -11,6 +11,7 @@ import (
 type Service interface {
 	CreateAccount(ctx context.Context, user *domain.User) error
 	GetAccount(ctx context.Context, accountNumber string) (*domain.User, error)
+	GetBalanceAccount(ctx context.Context, accountNumber string) (float64, error)
 	Deposit(ctx context.Context, accountNumber string, amount float64, description string) (*domain.Transaction, error)
 	Withdraw(ctx context.Context, accountNumber string, amount float64, description string) (*domain.Transaction, error)
 	Transfer(ctx context.Context, fromAccount, toAccount string, amount float64, description string) (*domain.Transaction, error)
@@ -77,6 +78,7 @@ func (s *BankService) Deposit(ctx context.Context, accountNumber string, amount 
 
 	return transaction, nil
 }
+
 func (s *BankService) Withdraw(ctx context.Context, accountNumber string, amount float64, description string) (*domain.Transaction, error) {
 	if amount <= 0 {
 		return nil, errors.New("amount must be positive")
@@ -180,4 +182,22 @@ func (s *BankService) GetTransactions(ctx context.Context, accountNumber string)
 	}
 
 	return transactions, nil
+}
+
+func (s *BankService) GetBalanceAccount(ctx context.Context, accountNumber string) (float64, error) {
+	// Verificar que el número de cuenta no esté vacío
+	if accountNumber == "" {
+		return 0, errors.New("account number is required")
+	}
+
+	// Obtener la cuenta desde el repositorio
+	account, err := s.repo.GetUserByAccountNumber(ctx, accountNumber)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get account: %w", err)
+	}
+	if account == nil {
+		return 0, errors.New("account not found")
+	}
+
+	return account.Saldo, nil
 }
