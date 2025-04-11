@@ -40,7 +40,6 @@ func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
 
 	opts := options.Client().
 		ApplyURI(mongoURI).
-		// ApplyURI("mongodb://root:example@mongodb:27017/").
 		SetAuth(options.Credential{
 			Username: MONGO_ROOT_USERNAME,
 			Password: MONGO_ROOT_PASSWORD,
