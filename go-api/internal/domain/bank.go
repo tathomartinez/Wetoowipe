@@ -28,6 +28,10 @@ const (
 	TransactionStatusProcesada TransactionStatus = "procesada"
 	TransactionStatusFallida   TransactionStatus = "fallida"
 	TransactionStatusPendiente TransactionStatus = "pendiente"
+	TransactionStatusRevertida TransactionStatus = "revertida"
+	TransactionStatusCancelada TransactionStatus = "cancelada"
+	TransactionStatusEnProceso TransactionStatus = "en_proceso"
+	TransactionStatusExitoso   TransactionStatus = "exitoso"
 )
 
 type Transaction struct {
@@ -40,4 +44,5 @@ type Transaction struct {
 	Referencia    string            `bson:"referencia"`
 	Descripcion   string            `bson:"descripcion"`
 	Estado        TransactionStatus `bson:"estado"`
+	FechaCreacion time.Time         `bson:"fecha_creacion"`
 }

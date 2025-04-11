@@ -147,3 +147,29 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(payload)
 }
+
+func (h *BankHandler) Transfer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	fromAccount := vars["accountNumber"]
+
+	var req struct {
+		ToAccount   string  `json:"toAccount"`
+		Amount      float64 `json:"amount"`
+		Description string  `json:"description"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("Transfer: Failed to decode request: %v", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+
+	transaction, err := h.service.Transfer(r.Context(), fromAccount, req.ToAccount, req.Amount, req.Description)
+	if err != nil {
+		log.Printf("Transfer: Failed to process transfer: %v", err)
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, transaction)
+}
