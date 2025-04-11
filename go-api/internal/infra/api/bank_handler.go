@@ -111,6 +111,22 @@ func (h *BankHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, transaction)
 }
 
+func (h *BankHandler) GetBalanceAccount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	numeroCuenta := vars["accountNumber"]
+
+	log.Printf("GetBalance: Received request for account number: %s", numeroCuenta)
+
+	balance, err := h.service.GetBalanceAccount(r.Context(), numeroCuenta)
+	if err != nil {
+		log.Printf("GetBalance: Failed to get balance: %v", err)
+		respondWithError(w, http.StatusNotFound, "Account not found")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]float64{"balance": balance})
+}
+
 // Similar implementations for Withdraw, Transfer, GetTransactions...
 
 type TransactionRequest struct {
