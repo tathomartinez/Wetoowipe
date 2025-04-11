@@ -48,7 +48,10 @@ module.exports = {
 
 async function logTransaction(valor, destinatario) {
     const API_TIMEOUT = 8000; // 8 segundos
-    const apiUrl = process.env.GO_API_URL || 'http://go-api:8080/log';
+    const apiUrl = process.env.GO_API_URL || 'http://localhost:8080';
+    const accountEndpoint = `${apiUrl}/api/v1/accounts`;
+    
+    console.log(`Llamando al endpoint de creación de cuentas: ${accountEndpoint}`);
 
 	const payload = {
 		fecha: new Date().toISOString(),
@@ -65,7 +68,7 @@ async function logTransaction(valor, destinatario) {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), API_TIMEOUT);
 
-        const response = await fetch(apiUrl, {
+        const response = await fetch(accountEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
