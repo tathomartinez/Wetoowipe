@@ -24,11 +24,26 @@ type MongoDBRepository struct {
 }
 
 func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
+
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		return nil, fmt.Errorf("failed to connect to MongoDB: %w")
+	}
+	MONGO_ROOT_USERNAME := os.Getenv("MONGO_ROOT_USERNAME")
+	if MONGO_ROOT_USERNAME == "" {
+		return nil, fmt.Errorf("failed to connect to MongoDB: %w")
+	}
+	MONGO_ROOT_PASSWORD := os.Getenv("MONGO_ROOT_PASSWORD")
+	if MONGO_ROOT_PASSWORD == "" {
+		return nil, fmt.Errorf("failed to connect to MongoDB: %w")
+	}
+
 	opts := options.Client().
-		ApplyURI("mongodb://root:example@mongodb:27017/").
+		ApplyURI(mongoURI).
+		// ApplyURI("mongodb://root:example@mongodb:27017/").
 		SetAuth(options.Credential{
-			Username: "root",
-			Password: "example",
+			Username: MONGO_ROOT_USERNAME,
+			Password: MONGO_ROOT_PASSWORD,
 		})
 
 	client, err := mongo.Connect(opts)
