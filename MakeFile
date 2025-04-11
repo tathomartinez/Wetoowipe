@@ -55,4 +55,8 @@ mongo-client-rebuild:
 	docker-compose up --build -d db-client
 
 mongo-client-debug:
+<<<<<<< HEAD
 	docker-compose --profile debug up db-client
+=======
+    docker-compose --profile debug up db-client
+>>>>>>> test-and-help-command
