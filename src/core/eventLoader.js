@@ -8,7 +8,7 @@ module.exports = (client) => {
     for (const file of eventFiles) {
         const filePath = path.join(eventsPath, file);
         const event = require(filePath);
-		console.log(`Cargando evento: ${event.name}`); // Agrega este log
+		// console.log(`Cargando evento: ${event.name}`); // Agrega este log
 
         if (event.once) {
             client.once(event.name, (...args) => event.execute(...args));
