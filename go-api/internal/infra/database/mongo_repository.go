@@ -24,7 +24,6 @@ type MongoDBRepository struct {
 }
 
 func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
-<<<<<<< HEAD
 
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
@@ -44,13 +43,6 @@ func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
 		SetAuth(options.Credential{
 			Username: MONGO_ROOT_USERNAME,
 			Password: MONGO_ROOT_PASSWORD,
-=======
-	opts := options.Client().
-		ApplyURI("mongodb://root:example@mongodb:27017/").
-		SetAuth(options.Credential{
-			Username: "root",
-			Password: "example",
->>>>>>> test-and-help-command
 		})
 
 	client, err := mongo.Connect(opts)
