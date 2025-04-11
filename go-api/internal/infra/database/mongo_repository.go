@@ -230,4 +230,19 @@ func (r *MongoDBRepository) GetTransactionsByAccountNumber(ctx context.Context, 
 	return transactions, nil
 }
 
+func (r *MongoDBRepository) GetBalanceAccount(ctx context.Context, numeroCuenta string) (float64, error) {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionUsers)
+
+	var user domain.User
+	err := collection.FindOne(ctx, bson.M{"numero_cuenta": numeroCuenta}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return 0, fmt.Errorf("account not found")
+		}
+		return 0, fmt.Errorf("failed to get account: %w", err)
+	}
+
+	return user.Saldo, nil
+}
+
 var _ saleslog.Repository = &MongoDBRepository{}
