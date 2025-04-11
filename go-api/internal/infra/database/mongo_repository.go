@@ -245,4 +245,29 @@ func (r *MongoDBRepository) GetBalanceAccount(ctx context.Context, numeroCuenta 
 	return user.Saldo, nil
 }
 
+func (r *MongoDBRepository) UpdateTransactionStatus(ctx context.Context, transactionID string, status string) error {
+	collection := r.client.Database(r.databaseName).Collection(r.collectionTransactions)
+	// Convertir transactionID a ObjectID
+	objectID, err := bson.ObjectIDFromHex(transactionID)
+	if err != nil {
+		return fmt.Errorf("invalid transaction ID format: %w", err)
+	}
+
+	filter := bson.M{"_id": objectID}
+	update := bson.M{"$set": bson.M{"estado": status}}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update transaction status: %w", err)
+	}
+
+	log.Printf("Resultado de la actualización: MatchedCount=%d, ModifiedCount=%d", result.MatchedCount, result.ModifiedCount)
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("transaction not found")
+	}
+
+	return nil
+}
+
 var _ saleslog.Repository = &MongoDBRepository{}

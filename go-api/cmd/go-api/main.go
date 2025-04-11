@@ -52,7 +52,7 @@ func main() {
 	apiV1.HandleFunc("/accounts/{accountNumber}/deposit", bankHandler.Deposit).Methods("POST")
 	// TODO: Descomentar las siguientes líneas si necesitas las funcionalidades de retiro y transferencia
 	// apiV1.HandleFunc("/accounts/{accountNumber}/withdraw", bankHandler.Withdraw).Methods("POST")
-	// apiV1.HandleFunc("/accounts/{accountNumber}/transfer", bankHandler.Transfer).Methods("POST")
+	apiV1.HandleFunc("/accounts/{accountNumber}/transfer", bankHandler.Transfer).Methods("POST")
 	// apiV1.HandleFunc("/accounts/{accountNumber}/transactions", bankHandler.GetTransactions).Methods("GET")
 
 	// Rutas existentes de saleslog (si las necesitas mantener)

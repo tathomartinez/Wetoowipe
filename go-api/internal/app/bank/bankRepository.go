@@ -13,4 +13,5 @@ type BankRepository interface {
 	CreateTransaction(ctx context.Context, transaction *domain.Transaction) error
 	GetTransactionsByAccount(ctx context.Context, numeroCuenta string) ([]domain.Transaction, error)
 	GetTransactionsByAccountNumber(ctx context.Context, accountNumber string) ([]domain.Transaction, error)
+	UpdateTransactionStatus(ctx context.Context, transactionID string, status string) error
 }
