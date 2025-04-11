@@ -53,3 +53,6 @@ mongo-client:
 
 mongo-client-rebuild:
 	docker-compose up --build -d db-client
+
+mongo-client-debug:
+    docker-compose --profile debug up db-client

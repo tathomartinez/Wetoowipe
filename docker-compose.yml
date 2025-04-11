@@ -99,6 +99,8 @@ services:
         condition: service_healthy
     networks:
       - my_network
+    profiles:
+      - debug
 
 volumes:
   mongodb_data:
