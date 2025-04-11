@@ -12,10 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"go-api/internal/app/saleslog"
-	"go-api/internal/domain" // Ensure domain.User is defined in this package
-	// "go.mongodb.org/mongo-driver/bson"
-	// "go.mongodb.org/mongo-driver/mongo"
-	// "go.mongodb.org/mongo-driver/mongo/options"
+	"go-api/internal/domain"
 )
 
 type MongoDBRepository struct {
