@@ -10,7 +10,7 @@ services:
     working_dir: /usr/src/app
     command: ["node", "main.js"]
     networks:
-      - my_network  # <-- Agrega esto
+      - my_network
 
   deploy-commands:
     build: .
@@ -39,8 +39,8 @@ services:
       - ./data:/data/db
       - ./init-mongo.d:/docker-entrypoint-initdb.d/:ro
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME} # <- Se carga desde .env
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD} # <- Se carga desde .env
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: devdb
 
     healthcheck:

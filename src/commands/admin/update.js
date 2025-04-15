@@ -107,8 +107,9 @@ function capitalize(str) {
 
 async function createRole(guild, name) {
 	const newRole = await guild.roles.create({
-		name,
+    name: name,
 		color: randomHexColor(),
+    hoist: true,
 		permissions: [],
 		reason: 'Rol creado automáticamente por el bot',
 	});
