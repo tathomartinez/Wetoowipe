@@ -1,5 +1,8 @@
 FROM node:23-slim
 
+# Instalar FFmpeg
+RUN apt-get update && apt-get install -y ffmpeg
+
 WORKDIR /usr/src/app
 
 # Copiamos solo los archivos de instalación primero para cachear bien
