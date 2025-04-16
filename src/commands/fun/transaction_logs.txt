@@ -1,5 +1,0 @@
-{"fecha":"2025-04-10T05:31:04.303Z","valor":100,"destinatario":"elromel","destinatario_id":"214877856994557952"}
-{"fecha":"2025-04-10T05:33:34.142Z","valor":100,"destinatario":"elromel","destinatario_id":"214877856994557952"}
-{"fecha":"2025-04-10T05:39:34.945Z","valor":100,"destinatario":"elromel","destinatario_id":"214877856994557952"}
-{"fecha":"2025-04-10T05:42:55.926Z","valor":100,"destinatario":"_tatho","destinatario_id":"250431644568125441"}
-{"fecha":"2025-04-10T05:42:58.746Z","valor":100,"destinatario":"kaletzye","destinatario_id":"242636215960993792"}
