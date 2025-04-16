@@ -284,4 +284,16 @@ func (r *MongoDBRepository) UpdateTransactionStatus(ctx context.Context, transac
 	return nil
 }
 
+func (r *MongoDBRepository) GetRules(ctx context.Context) (*domain.Rules, error) {
+	collection := r.client.Database(r.databaseName).Collection("rules")
+	var rules domain.Rules
+
+	err := collection.FindOne(ctx, bson.M{"_id": "rules_webhook"}).Decode(&rules)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rules: %w", err)
+	}
+
+	return &rules, nil
+}
+
 var _ saleslog.Repository = &MongoDBRepository{}

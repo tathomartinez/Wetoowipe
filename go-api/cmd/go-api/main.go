@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"go-api/internal/app/bank" // Nuevo paquete para el banco
+	"go-api/internal/app/rules"
 	"go-api/internal/app/saleslog"
 	"go-api/internal/infra/api"
 	"go-api/internal/infra/database"
@@ -37,7 +38,10 @@ func main() {
 
 	// Servicio bancario (nuevo)
 	bankService := bank.NewBankService(mongoRepo)
+	rulesService := rules.NewRulesService(mongoRepo)
+
 	bankHandler := api.NewBankHandler(bankService)
+	rulesHandler := api.NewRulesHandler(rulesService)
 
 	// Configurar enrutador
 	r := mux.NewRouter()
@@ -54,6 +58,8 @@ func main() {
 	// apiV1.HandleFunc("/accounts/{accountNumber}/withdraw", bankHandler.Withdraw).Methods("POST")
 	apiV1.HandleFunc("/accounts/{accountNumber}/transfer", bankHandler.Transfer).Methods("POST")
 	// apiV1.HandleFunc("/accounts/{accountNumber}/transactions", bankHandler.GetTransactions).Methods("GET")
+
+	apiV1.HandleFunc("/webhook", rulesHandler.GetRules).Methods("POST")
 
 	// Rutas existentes de saleslog (si las necesitas mantener)
 	r.HandleFunc("/", salesLogHandler.RootHandler)
