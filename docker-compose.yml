@@ -41,7 +41,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: devdb
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
 
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -59,9 +59,10 @@ services:
       - MONGO_URI=${MONGO_URI}
       - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME}
       - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-      - MONGO_AUTH_DB=devdb
-      - MONGO_DATABASE=devdb
+      - MONGO_AUTH_DB=${MONGO_DATABASE}
+      - MONGO_DATABASE=${MONGO_DATABASE}
       - SECRET_KEY=${SECRET_KEY}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
     ports:
       - "8080:8080"
     depends_on:
