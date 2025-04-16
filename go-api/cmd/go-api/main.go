@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"go-api/internal/app/bank" // Nuevo paquete para el banco
 	"go-api/internal/app/rules"
@@ -15,7 +17,33 @@ import (
 	"github.com/gorilla/mux" // Importamos gorilla/mux para enrutamiento
 )
 
+func setupLogging() {
+	// Crear el directorio base de logs
+	baseLogDir := "./logs/app"
+	date := time.Now().Format("2006-01-02") // Formato YYYY-MM-DD
+	logDir := baseLogDir + "/" + date
+
+	// Crear el directorio de logs si no existe
+	if _, err := os.Stat(logDir); os.IsNotExist(err) {
+		err := os.MkdirAll(logDir, 0755)
+		if err != nil {
+			log.Fatalf("No se pudo crear el directorio de logs: %v", err)
+		}
+	}
+
+	// Crear el archivo de log
+	logFile, err := os.OpenFile(logDir+"/app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("No se pudo abrir el archivo de log: %v", err)
+	}
+
+	// Configurar el logger para escribir en el archivo
+	log.SetOutput(logFile)
+	log.Println("Logging configurado correctamente")
+}
+
 func main() {
+	setupLogging() // Configurar el logging
 	ctx := context.Background()
 
 	// Inicializar repositorio MongoDB

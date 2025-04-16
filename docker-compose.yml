@@ -69,6 +69,8 @@ services:
       mongodb:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
     networks:
       - my_network
 
