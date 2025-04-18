@@ -94,9 +94,60 @@ services:
       - my_network
     profiles:
       - debug
+  f5-tts:
+    build:
+      context: ./F5-TTS
+      dockerfile: Dockerfile
+    container_name: f5-tts
+    ports:
+      - "7860:7860" # Puerto expuesto por F5-TTS
+    volumes:
+      - ./F5-TTS:/workspace/F5-TTS # Montar la carpeta del proyecto
+      - ./logs/f5-tts:/workspace/F5-TTS/logs # Montar la carpeta de logs
+      - ./f5-tts-cache:/root/.cache/huggingface/hub
+    environment:
+      - PYTHONUNBUFFERED=1 # Evitar buffering en los logs de Python
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    runtime: nvidia
+    networks:
+      - my_network
+    command: ["f5-tts_infer-gradio", "--host", "0.0.0.0"]
 
 volumes:
   mongodb_data:
 
 networks:
   my_network:
+
+
+  # coqui-tts:
+  #   image: ghcr.io/idiap/coqui-tts-cpu
+  #   container_name: coqui-tts
+  #   ports:
+  #     - "5002:5002" # Puerto del servidor HTTP TTS
+  #   volumes:
+  #     - ./tts-output:/root/tts-output
+  #   entrypoint: >
+  #     bash -c "mkdir -p /root/tts-output && python3 TTS/server/server.py --model_name tts_models/es/mai/tacotron2-DDC"
+  # openvoice:
+  #   build:
+  #     context: ./openvoice
+  #     dockerfile: Dockerfile
+  #   container_name: openvoice
+  #   ports:
+  #     - "7860:7860" # Puerto expuesto por OpenVoice
+  #   volumes:
+  #     - ./openvoice:/app # Montar la carpeta del proyecto
+  #     - ./logs/openvoice:/app/logs # Montar la carpeta de logs
+  #   environment:
+  #     - PYTHONUNBUFFERED=1 # Evitar buffering en los logs de Python
+  #   networks:
+  #     - my_network
+
+ 
