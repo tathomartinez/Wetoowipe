@@ -16,10 +16,8 @@ RUN set -x \
     
 WORKDIR /workspace
 
-RUN git clone https://github.com/SWivid/F5-TTS.git \
-    && git clone https://github.com/jpgallegoar/Spanish-F5.git \
+RUN git clone https://github.com/jpgallegoar/Spanish-F5.git \
     && cd Spanish-F5 \
-    # && cd F5-TTS \
     && git submodule update --init --recursive \
     && pip install -e . --no-cache-dir
 
