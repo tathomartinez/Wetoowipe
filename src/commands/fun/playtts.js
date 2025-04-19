@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { playTTS } = require('../../core/ttsPlayer');
+const { playTTS } = require('../../tts/ttsPlayer');
 
 module.exports = {
     data: new SlashCommandBuilder()

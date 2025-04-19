@@ -7,6 +7,7 @@ services:
       - .env
     volumes:
       - .:/usr/src/app
+      - ./logs/discord-bot:/usr/src/app/logs
     working_dir: /usr/src/app
     command: ["node", "main.js"]
     networks:
