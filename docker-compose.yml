@@ -102,7 +102,7 @@ services:
     ports:
       - "7860:7860" # Puerto expuesto por F5-TTS
     volumes:
-      - ./F5-TTS:/workspace/F5-TTS # Montar la carpeta del proyecto
+      # - ./F5-TTS:/workspace/F5-TTS # Montar la carpeta del proyecto
       - ./logs/f5-tts:/workspace/F5-TTS/logs # Montar la carpeta de logs
       - ./f5-tts-cache:/root/.cache/huggingface/hub
     environment:
