@@ -96,7 +96,7 @@ services:
       - debug
   f5-tts:
     build:
-      context: ./F5-TTS
+      context: ./Spanish-F5
       dockerfile: Dockerfile
     container_name: f5-tts
     ports:
