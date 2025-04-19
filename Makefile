@@ -1,7 +1,3 @@
-.PHONY: build rebuild launch test test-docker deploy full-deploy \
-        bot bot-rebuild commands commands-rebuild go-api go-api-rebuild \
-        mongo mongo-rebuild mongo-client mongo-client-rebuild
-
 # General commands
 build:
 	docker-compose build
@@ -56,3 +52,15 @@ mongo-client-rebuild:
 
 mongo-client-debug:
 	docker-compose --profile debug up db-client
+
+# openvoice:
+# 	docker-compose up -d openvoice
+
+# openvoice-rebuild:
+# 	docker-compose up --build -d openvoice
+
+tts:
+	docker-compose up -d f5-tts
+
+tts-rebuild:
+	docker-compose up --build -d f5-tts

@@ -19,7 +19,7 @@ module.exports = {
             console.log(`Llamando al endpoint de reglas: ${rulesEndpoint}`);
 
             // Llamar al API
-                       const response = await fetch(rulesEndpoint, {
+            const response = await fetch(rulesEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
