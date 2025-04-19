@@ -1,6 +1,6 @@
 services:
   discord-bot:
-    build: 
+    build:
       context: ./bot
       dockerfile: Dockerfile
     container_name: discord-bot
@@ -8,14 +8,15 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/usr/src/app
+      - ./bot:/usr/src/app
+      - ./logs/discord-bot:/usr/src/app/logs
     working_dir: /usr/src/app
     command: ["node", "main.js"]
     networks:
       - my_network
 
   deploy-commands:
-    build: 
+    build:
       context: ./bot
       dockerfile: Dockerfile
     env_file:
@@ -26,7 +27,7 @@ services:
     entrypoint: ["node", "src/scripts/deploy-commands.js"]
 
   test:
-    build: 
+    build:
       context: ./bot
       dockerfile: Dockerfile
     container_name: discord-bot-test
@@ -34,6 +35,8 @@ services:
       - .env
     working_dir: /usr/src/app
     command: ["npm", "run", "test:ci"]
+    profiles:
+      - debug
 
   mongodb:
     image: mongo:latest
@@ -100,6 +103,40 @@ services:
       - my_network
     profiles:
       - debug
+  f5-tts:
+    build:
+      context: ./Spanish-F5
+      dockerfile: Dockerfile
+    container_name: f5-tts
+    ports:
+      - "7860:7860" # Puerto expuesto por F5-TTS
+    volumes:
+      # - ./F5-TTS:/workspace/F5-TTS # Montar la carpeta del proyecto
+      - ./logs/f5-tts:/workspace/F5-TTS/logs # Montar la carpeta de logs
+      - ./f5-tts-cache:/root/.cache/huggingface/hub
+    environment:
+      - PYTHONUNBUFFERED=1 # Evitar buffering en los logs de Python
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    runtime: nvidia
+    networks:
+      - my_network
+    command: ["f5-tts_infer-gradio", "--host", "0.0.0.0"]
+
+  file-server:
+    image: nginx:latest
+    container_name: file-server
+    ports:
+      - "8082:80" # Exponer el servidor en el puerto 8080
+    volumes:
+      - ./shared-files:/usr/share/nginx/html:ro # Montar la carpeta local como solo lectura
+    networks:
+      - my_network
 
 volumes:
   mongodb_data:

@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { musicPlayer } = require('../../core/musicPlayer');
+const AudioPaths = require('../../audio/audioPaths');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,7 +18,7 @@ module.exports = {
             await musicPlayer({
                 voiceChannel,
                 guild: interaction.guild,
-                audioPath: './src/audio/bienvenido.ogg',
+                audioPath: AudioPaths.help,
             });
 
             return interaction.reply({ content: '🎵 Reproduciendo audio en el canal de voz.', ephemeral: true });

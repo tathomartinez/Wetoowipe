@@ -1,5 +1,6 @@
 const { Events } = require('discord.js');
 const { musicPlayer } = require('../core/musicPlayer'); // Importar la función musicPlayer
+const AudioPaths = require('../audio/audioPaths'); // Importar el "enum"
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -7,6 +8,11 @@ module.exports = {
     async execute(oldState, newState) {
         try {
             // Salir si el usuario no se conectó a un canal de voz
+            const botId = '868646244380192818'; // ID del bot
+            if (newState.member.id === botId) {
+                return;
+            }
+
             if (oldState.channel || !newState.channel) {
                 return;
             }
@@ -25,7 +31,7 @@ module.exports = {
             await musicPlayer({
                 voiceChannel: newState.channel,
                 guild: newState.guild,
-                audioPath: './src/audio/bienvenido.ogg',
+                audioPath: AudioPaths.BIENVENIDO,
             });
         } catch (error) {
             console.error('Error en el evento VoiceStateUpdate:', error);

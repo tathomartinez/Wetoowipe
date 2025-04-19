@@ -5,7 +5,7 @@ const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerSta
  * @param {Object} options - Opciones para la reproducción.
  * @param {Object} options.voiceChannel - Canal de voz donde se conectará el bot.
  * @param {Object} options.guild - Servidor donde se encuentra el canal de voz.
- * @param {string} options.audioPath - Ruta del archivo de audio a reproducir.
+ * @param {AudioPath} options.audioPath - Ruta del archivo de audio a reproducir.
  * @param {Function} [options.onFinish] - Callback opcional que se ejecuta cuando el audio termina.
  */
 async function musicPlayer({ voiceChannel, guild, audioPath, onFinish }) {
@@ -24,6 +24,7 @@ async function musicPlayer({ voiceChannel, guild, audioPath, onFinish }) {
     const player = createAudioPlayer();
 
     // Cargar un archivo de audio o una URL
+    console.log('Cargando audio:', audioPath);
     const resource = createAudioResource(audioPath);
 
     // Conectar el reproductor al canal de voz
