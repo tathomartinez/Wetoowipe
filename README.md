@@ -12,6 +12,7 @@ Bot de Discord modular y personalizable con comandos slash, funciones programada
 - 🛡 Validación por IDs autorizados para comandos sensibles
 - 🧪 Tests automáticos con [Vitest](https://vitest.dev/)
 - 🐳 Soporte completo para Docker y Makefile
+- 📁 Estructura organizada para facilitar el mantenimiento
 
 ---
 
