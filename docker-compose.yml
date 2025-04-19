@@ -1,6 +1,8 @@
 services:
   discord-bot:
-    build: .
+    build: 
+      context: ./bot
+      dockerfile: Dockerfile
     container_name: discord-bot
     restart: unless-stopped
     env_file:
@@ -13,7 +15,9 @@ services:
       - my_network
 
   deploy-commands:
-    build: .
+    build: 
+      context: ./bot
+      dockerfile: Dockerfile
     env_file:
       - .env
     working_dir: /usr/src/app
@@ -22,7 +26,9 @@ services:
     entrypoint: ["node", "src/scripts/deploy-commands.js"]
 
   test:
-    build: .
+    build: 
+      context: ./bot
+      dockerfile: Dockerfile
     container_name: discord-bot-test
     env_file:
       - .env
