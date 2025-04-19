@@ -20,12 +20,12 @@ async function playTTS(interaction, text) {
             body: JSON.stringify({
                 data: [
                     {
-                        path: "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+                        path: "http://file-server:80/mapacha_rev.wav",
                         meta: {
                             _type: "gradio.FileData"
                         }
                     },
-                    text,
+                    "",
                     text,
                     "F5-TTS",
                     true,

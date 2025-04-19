@@ -119,6 +119,16 @@ services:
       - my_network
     command: ["f5-tts_infer-gradio", "--host", "0.0.0.0"]
 
+  file-server:
+    image: nginx:latest
+    container_name: file-server
+    ports:
+      - "8082:80" # Exponer el servidor en el puerto 8080
+    volumes:
+      - ./shared-files:/usr/share/nginx/html:ro # Montar la carpeta local como solo lectura
+    networks:
+      - my_network
+
 volumes:
   mongodb_data:
 
