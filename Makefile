@@ -7,7 +7,7 @@ rebuild:
 
 launch:
 	docker-compose up -d
-
+ 
 test:
 	npm test
 
