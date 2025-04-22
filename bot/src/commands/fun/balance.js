@@ -51,11 +51,10 @@ module.exports = {
                 logger.error('Error en la respuesta del API:', errorData);
 
                 if (response.status === 404) {
-                    await interaction.editReply('❌ No se encontró una cuenta asociada a tu usuario.');
+                    await interaction.editReply('❌ No se encontró una cuenta asociada a tu usuario. Por favor, utiliza el comando `/register` para crear una cuenta.');
                 } else {
                     await interaction.editReply('❌ Ocurrió un error al consultar tu saldo. Intenta nuevamente más tarde.');
                 }
-
                 throw new Error(errorData.message || `HTTP ${response.status}`);
             }
         } catch (error) {
