@@ -24,7 +24,8 @@ services:
     working_dir: /usr/src/app
     volumes:
       - .:/usr/src/app
-    entrypoint: ["node", "src/scripts/deploy-commands.js"]
+    entrypoint: ["node", "./bot/src/scripts/deploy-commands.js"]
+    # entrypoint: ["ls", "./bot/src/scripts"]
 
   test:
     build:
