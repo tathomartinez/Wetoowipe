@@ -63,7 +63,7 @@ class GroupManager {
 
     async deleteGroup(groupId, guild) {
         logger.info(`Eliminando grupo con ID: ${groupId}`);
-        return "Grupo eliminado exitosamente. -- respuesta de prueba"; // Respuesta de prueba
+        // return "Grupo eliminado exitosamente. -- respuesta de prueba"; // Respuesta de prueba
         const groupIndex = this.groups.findIndex(group => group.id === groupId);
         if (groupIndex === -1) {
             throw new Error(`El grupo con ID ${groupId} no existe.`);

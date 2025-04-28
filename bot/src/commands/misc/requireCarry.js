@@ -131,7 +131,8 @@ module.exports = {
 
         this.setupReactionCollector(message, group.id, interaction.user);
 
-        startCountdown(group.id, interaction.guild, COUNTDOWN_DURATION_MINUTES);
+        // startCountdown(group.id, interaction.guild, COUNTDOWN_DURATION_MINUTES);
+        // TODO borrar el grupo con otra funcion como complete carry o delete carry
         logger.info(`Cuenta regresiva iniciada para el grupo ${group.id}.`);
     },
 
