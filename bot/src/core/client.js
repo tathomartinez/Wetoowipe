@@ -1,4 +1,4 @@
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
 
 const client = new Client({
 	intents: [
@@ -6,7 +6,14 @@ const client = new Client({
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.MessageContent, // opcional
 	],
+    partials: [
+        Partials.Message,
+        Partials.Channel,
+        Partials.Reaction,
+    ],
 });
 
 client.commands = new Collection();
