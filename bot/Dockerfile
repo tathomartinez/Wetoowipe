@@ -9,9 +9,9 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Instalamos todo incluyendo devDependencies
-RUN npm install
+RUN npm install -g nodemon && npm install
 
 # Copiamos el resto del proyecto
 COPY . .
 
-CMD ["node", "main.js"]
+CMD ["nodemon", "main.js"]

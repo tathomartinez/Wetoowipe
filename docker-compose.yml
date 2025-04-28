@@ -11,7 +11,7 @@ services:
       - ./bot:/usr/src/app
       - ./logs/discord-bot:/usr/src/app/logs
     working_dir: /usr/src/app
-    command: ["node", "main.js"]
+    command: ["nodemon", "bot/main.js"] 
     networks:
       - my_network
 

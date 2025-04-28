@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const groupManager = require('../../groups/groupManager');
 const { startCountdown } = require('../../utils/countdown');
 const { sendMessageToChannel } = require('../../utils/channelWriter');
@@ -168,18 +168,51 @@ module.exports = {
                 logger.info(`Usuario ${user.tag} se unió al grupo ${groupId}.`);
                 participants.push(user.tag);
                 groupManager.addMemberToGroup(groupId, user.id);
+                // if (!interaction.client.participants) {
+                //     interaction.client.participants = [];
+                // }
+                // interaction.client.participants[groupId] = participants;
             });
 
-            collector.on('end', async collected => {
+                        collector.on('end', async collected => {
                 logger.info(`Período de recolección de reacciones finalizado para el grupo ${groupId}. Total: ${collected.size}`);
-                const participantList = participants.length > 0
-                    ? participants.join('\n')
+            
+                // Obtener el grupo desde groupManager
+                const group = groupManager.getGroupById(groupId);
+            
+                if (!group) {
+                    logger.error(`No se encontró el grupo con ID ${groupId}.`);
+                    return;
+                }
+            
+                // Obtener los IDs de los participantes desde el grupo
+                const participantList = group.members.length > 0
+                    ? group.members.map((id, index) => `${index + 1}. <@${id}>`).join('\n') // Formato para mencionar usuarios
                     : 'No hay participantes aún.';
+            
                 const dmContent = `Tu grupo para el carry ha sido creado. Aquí está la lista de participantes:\n\n${participantList}`;
-
+            
                 try {
-                    await requester.send(dmContent);
-                    logger.info(`DM enviado a ${requester.tag} con la lista de participantes.`);
+                    if (group.members.length > 0) {
+                        // Crear botones para interactuar
+                        const buttons = group.members.map((memberId, index) => {
+                            return new ButtonBuilder()
+                                .setCustomId(`contact_${memberId}_${groupId}`) // Incluye el índice y el ID del grupo
+                                .setLabel(`Contactar a <@${memberId}>`)
+                                .setStyle(ButtonStyle.Primary);
+                        });
+            
+                        const actionRow = new ActionRowBuilder().addComponents(buttons);
+            
+                        // Usar sendSuccessDM para enviar el mensaje interactivo
+                        await sendSuccessDM(requester, dmContent, [actionRow]);
+            
+                        logger.info(`DM interactivo enviado a ${requester.tag} con la lista de participantes.`);
+                    } else {
+                        // Usar sendSuccessDM para enviar un mensaje sin botones
+                        await sendSuccessDM(requester, dmContent);
+                        logger.info(`DM enviado a ${requester.tag} sin participantes.`);
+                    }
                 } catch (error) {
                     logger.error(`Error al enviar DM a ${requester.tag}: ${error.message}`);
                 }

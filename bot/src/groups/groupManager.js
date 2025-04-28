@@ -1,3 +1,7 @@
+const logger = require("../services/logger");
+
+const util = require('util');
+
 class GroupManager {
     constructor() {
         this.groups = []; // Stack para almacenar los grupos
@@ -37,7 +41,10 @@ class GroupManager {
     }
 
     getGroupById(id) {
-        return this.groups.find(group => group.id === id);
+        logger.info(`Buscando grupo con ID: ${id}`);
+        logger.info(`Grupos disponibles: ${this.groups.map(group => group.id)}`);
+        logger.info(`${util.inspect(this.groups)}`);
+        return this.groups.find(group => group.id === parseInt(id, 10)); // Convertir id a número
     }
 
     addMemberToGroup(groupId, memberId) {
@@ -55,13 +62,15 @@ class GroupManager {
     }
 
     async deleteGroup(groupId, guild) {
+        logger.info(`Eliminando grupo con ID: ${groupId}`);
+        return "Grupo eliminado exitosamente. -- respuesta de prueba"; // Respuesta de prueba
         const groupIndex = this.groups.findIndex(group => group.id === groupId);
         if (groupIndex === -1) {
             throw new Error(`El grupo con ID ${groupId} no existe.`);
         }
-    
+
         const group = this.groups[groupIndex];
-    
+
         // Intentar eliminar el canal de voz asociado
         try {
             const channel = await guild.channels.fetch(group.voiceChannelId);
@@ -71,10 +80,37 @@ class GroupManager {
         } catch (error) {
             console.warn(`No se pudo eliminar el canal de voz para el grupo ${groupId}:`, error.message);
         }
-    
+
         // Eliminar el grupo del stack
         this.groups.splice(groupIndex, 1);
         return `Grupo con ID ${groupId} eliminado exitosamente.`;
+    }
+
+    moveMemberToTeamCarry(groupId, memberId) {
+        const group = this.getGroupById(groupId);
+
+        if (!group) {
+            logger.error(`No se encontró el grupo con ID ${groupId}.`);
+            return false;
+        }
+
+        // Verificar si el miembro está en la lista de members
+        const memberIndex = group.members.indexOf(memberId);
+        if (memberIndex === -1) {
+            logger.error(`El miembro con ID ${memberId} no está en el grupo ${groupId}.`);
+            return false;
+        }
+
+        // Mover el miembro de members a teamCarry
+        if (!group.teamCarry) {
+            group.teamCarry = []; // Inicializar teamCarry si no existe
+        }
+
+        group.teamCarry.push(memberId); // Agregar el miembro a teamCarry
+        group.members.splice(memberIndex, 1); // Eliminar el miembro de members
+
+        logger.info(`Miembro con ID ${memberId} movido a teamCarry en el grupo ${groupId}.`);
+        return true;
     }
 }
 
