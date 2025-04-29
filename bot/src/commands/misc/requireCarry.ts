@@ -8,21 +8,20 @@ import {
     Message,
     Guild,
     User,
+    CommandInteractionOptionResolver,
 } from 'discord.js';
 import groupManager from '../../groups/groupManager';
-// import { startCountdown } from '../../utils/countdown';
 import { sendMessageToChannel } from '../../utils/channelWriter';
 import { sendSuccessDM } from '../../utils/dmSender';
-import logger from '../../services/logger'; // Asegúrate de que la ruta sea correcta
+import logger from '../../services/logger';
+import * as util from 'util';
 
-// Constants
 const CARRY_CHANNEL_ID = '868651189200379966';
-const COUNTDOWN_DURATION_MINUTES = 2;
 const REACTION_TIMEOUT_MINUTES = 2;
-const DEBUG_MODE = true; // Set to false in production
+const DEBUG_MODE = true;
 
 interface Group {
-    id: number; // Cambiado de string a number
+    id: number;
     members: string[];
     teamCarry?: string[];
 }
@@ -49,8 +48,10 @@ export default {
 
     async execute(interaction: CommandInteraction) {
         try {
-            const tipo = interaction.options.get('tipo', true).value as string;
-            const participantes = interaction.options.get('participantes', true).value as number;
+
+            logger.debug(`Comando requirecarry ejecutado por ${util.inspect(interaction.user, { depth: null })}`);
+            const tipo = (interaction.options as CommandInteractionOptionResolver).getString('tipo', true);
+            const participantes = (interaction.options as CommandInteractionOptionResolver).getNumber('participantes', true);
 
             logger.info(`Comando requirecarry ejecutado por ${interaction.user.tag}. Tipo: ${tipo}, Participantes: ${participantes}`);
 
@@ -193,7 +194,11 @@ export default {
 
             collector.on('end', async collected => {
                 logger.info(`Período de recolección de reacciones finalizado para el grupo ${groupId}. Total: ${collected.size}`);
-                const group = groupManager.getGroupById(String(groupId)) as unknown as Group;
+                const group = groupManager.getGroupById(groupId);
+                if (!group) {
+                    logger.error(`No se encontró el grupo con ID ${groupId}.`);
+                    return;
+                }
 
                 if (!group) {
                     logger.error(`No se encontró el grupo con ID ${groupId}.`);
