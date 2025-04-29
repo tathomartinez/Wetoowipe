@@ -1,9 +1,19 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const groupManager = require('../../groups/groupManager');
-const { startCountdown } = require('../../utils/countdown');
-const { sendMessageToChannel } = require('../../utils/channelWriter');
-const { sendSuccessDM } = require('../../utils/dmSender');
-const logger = require('../../services/logger'); // Importar el logger
+import {
+    SlashCommandBuilder,
+    ActionRowBuilder,
+    StringSelectMenuBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    CommandInteraction,
+    Message,
+    Guild,
+    User,
+} from 'discord.js';
+import groupManager from '../../groups/groupManager';
+// import { startCountdown } from '../../utils/countdown';
+import { sendMessageToChannel } from '../../utils/channelWriter';
+import { sendSuccessDM } from '../../utils/dmSender';
+import logger from '../../services/logger'; // Asegúrate de que la ruta sea correcta
 
 // Constants
 const CARRY_CHANNEL_ID = '868651189200379966';
@@ -11,7 +21,13 @@ const COUNTDOWN_DURATION_MINUTES = 2;
 const REACTION_TIMEOUT_MINUTES = 2;
 const DEBUG_MODE = true; // Set to false in production
 
-module.exports = {
+interface Group {
+    id: number; // Cambiado de string a number
+    members: string[];
+    teamCarry?: string[];
+}
+
+export default {
     data: new SlashCommandBuilder()
         .setName('requirecarry')
         .setDescription('Solicita ayuda para actividades PvE o PvP')
@@ -31,10 +47,10 @@ module.exports = {
                 .setMinValue(1)
         ),
 
-    async execute(interaction) {
+    async execute(interaction: CommandInteraction) {
         try {
-            const tipo = interaction.options.getString('tipo');
-            const participantes = interaction.options.getInteger('participantes');
+            const tipo = interaction.options.get('tipo', true).value as string;
+            const participantes = interaction.options.get('participantes', true).value as number;
 
             logger.info(`Comando requirecarry ejecutado por ${interaction.user.tag}. Tipo: ${tipo}, Participantes: ${participantes}`);
 
@@ -44,15 +60,19 @@ module.exports = {
                 await this.handlePvP(interaction, participantes);
             }
         } catch (error) {
-            logger.error(`Error en el comando requirecarry: ${error.message}`);
+            if (error instanceof Error) {
+                logger.error(`Error en el comando requirecarry: ${error.message}`);
+            } else {
+                logger.error(`Error en el comando requirecarry: ${String(error)}`);
+            }
             await interaction.reply({
                 content: 'Ocurrió un error al procesar tu solicitud. Por favor intenta nuevamente.',
-                ephemeral: true
+                ephemeral: true,
             });
         }
     },
 
-    async handlePvE(interaction, participants) {
+    async handlePvE(interaction: CommandInteraction, participants: number) {
         logger.info(`Procesando solicitud PvE de ${interaction.user.tag} con ${participants} participantes.`);
         const rolesMenu = new StringSelectMenuBuilder()
             .setCustomId('select-role')
@@ -63,7 +83,7 @@ module.exports = {
                 { label: 'Tank', value: 'tank' },
             ]);
 
-        const row = new ActionRowBuilder().addComponents(rolesMenu);
+        const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(rolesMenu);
 
         await interaction.reply({
             content: `Has solicitado ayuda para una actividad PvE con ${participants} participantes. Selecciona el rol que buscas:`,
@@ -71,22 +91,23 @@ module.exports = {
             ephemeral: true,
         });
 
-        const filter = i => i.customId === 'select-role' && i.user.id === interaction.user.id;
-        const collector = interaction.channel.createMessageComponentCollector({
+        const filter = (i: any) => i.customId === 'select-role' && i.user.id === interaction.user.id;
+        const collector = interaction.channel?.createMessageComponentCollector({
             filter,
-            time: 15000
+            time: 15000,
         });
 
-        collector.on('collect', async i => {
-            const role = i.values[0];
-            logger.info(`Rol seleccionado por ${interaction.user.tag}: ${role}`);
-            await this.createAndSetupGroup(interaction, 'pve', participants, role);
+        collector?.on('collect', async i => {
+            if (i.isStringSelectMenu()) {
+                const role = i.values[0];
+                await this.createAndSetupGroup(interaction, 'pve', participants, role);
+            }
             await i.editReply({
                 content: 'Grupo creado exitosamente. Revisa tus mensajes privados para más detalles.',
             });
         });
 
-        collector.on('end', collected => {
+        collector?.on('end', collected => {
             if (collected.size === 0) {
                 logger.warn(`El usuario ${interaction.user.tag} no seleccionó un rol a tiempo.`);
                 interaction.editReply({
@@ -97,7 +118,7 @@ module.exports = {
         });
     },
 
-    async handlePvP(interaction, participants) {
+    async handlePvP(interaction: CommandInteraction, participants: number) {
         logger.info(`Procesando solicitud PvP de ${interaction.user.tag} con ${participants} participantes.`);
         await interaction.deferReply({ ephemeral: true });
         await this.createAndSetupGroup(interaction, 'pvp', participants);
@@ -106,10 +127,10 @@ module.exports = {
         });
     },
 
-    async createAndSetupGroup(interaction, type, participants, role = null) {
+    async createAndSetupGroup(interaction: CommandInteraction, type: string, participants: number, role: string | null = null) {
         logger.info(`Creando grupo para ${interaction.user.tag}. Tipo: ${type}, Participantes: ${participants}, Rol: ${role || 'N/A'}`);
         const group = await groupManager.createGroup({
-            guild: interaction.guild,
+            guild: interaction.guild as Guild,
             type,
             participants,
             role,
@@ -129,23 +150,19 @@ module.exports = {
         await message.react('✅');
         logger.debug(`Reacción ✅ añadida al mensaje del grupo ${group.id}.`);
 
-        this.setupReactionCollector(message, group.id, interaction.user);
-
-        // startCountdown(group.id, interaction.guild, COUNTDOWN_DURATION_MINUTES);
-        // TODO borrar el grupo con otra funcion como complete carry o delete carry
-        logger.info(`Cuenta regresiva iniciada para el grupo ${group.id}.`);
+        this.setupReactionCollector(message, String(group.id), interaction.user);
     },
 
-    async setupReactionCollector(message, groupId, requester) {
+    async setupReactionCollector(message: Message, groupId: string, requester: User) {
         logger.info(`Configurando recolector de reacciones para el grupo ${groupId}.`);
         try {
             if (message.partial) {
                 await message.fetch();
             }
 
-            const participants = [];
+            const participants: string[] = [];
 
-            const reactionFilter = async (reaction, user) => {
+            const reactionFilter = async (reaction: any, user: User) => {
                 try {
                     if (reaction.partial) {
                         await reaction.fetch();
@@ -153,9 +170,12 @@ module.exports = {
 
                     logger.debug(`Reacción detectada: ${reaction.emoji.name} de ${user.tag}`);
                     return reaction.emoji.name === '✅' && !user.bot;
-
                 } catch (error) {
-                    logger.error(`Error al procesar reacción: ${error.message}`);
+                    if (error instanceof Error) {
+                        logger.error(`Error al procesar reacción: ${error.message}`);
+                    } else {
+                        logger.error(`Error al procesar reacción: ${String(error)}`);
+                    }
                     return false;
                 }
             };
@@ -168,68 +188,59 @@ module.exports = {
             collector.on('collect', (reaction, user) => {
                 logger.info(`Usuario ${user.tag} se unió al grupo ${groupId}.`);
                 participants.push(user.tag);
-                groupManager.addMemberToGroup(groupId, user.id);
-                // if (!interaction.client.participants) {
-                //     interaction.client.participants = [];
-                // }
-                // interaction.client.participants[groupId] = participants;
+                groupManager.addMemberToGroup(String(groupId), user.id);
             });
 
-                        collector.on('end', async collected => {
+            collector.on('end', async collected => {
                 logger.info(`Período de recolección de reacciones finalizado para el grupo ${groupId}. Total: ${collected.size}`);
-            
-                // Obtener el grupo desde groupManager
-                const group = groupManager.getGroupById(groupId);
-            
+                const group = groupManager.getGroupById(String(groupId)) as unknown as Group;
+
                 if (!group) {
                     logger.error(`No se encontró el grupo con ID ${groupId}.`);
                     return;
                 }
-            
-                // Obtener los IDs de los participantes desde el grupo
+
                 const participantList = group.members.length > 0
-                    ? group.members.map((id, index) => `${index + 1}. <@${id}>`).join('\n') // Formato para mencionar usuarios
+                    ? group.members.map((id, index) => `${index + 1}. <@${id}>`).join('\n')
                     : 'No hay participantes aún.';
-            
+
                 const dmContent = `Tu grupo para el carry ha sido creado. Aquí está la lista de participantes:\n\n${participantList}`;
-            
+
                 try {
                     if (group.members.length > 0) {
-                        // Crear botones para interactuar
-                        const buttons = group.members.map((memberId, index) => {
+                        const buttons = group.members.map(memberId => {
                             return new ButtonBuilder()
-                                .setCustomId(`contact_${memberId}_${groupId}`) // Incluye el índice y el ID del grupo
+                                .setCustomId(`contact_${memberId}_${groupId}`)
                                 .setLabel(`Contactar a <@${memberId}>`)
                                 .setStyle(ButtonStyle.Primary);
                         });
-            
-                        const actionRow = new ActionRowBuilder().addComponents(buttons);
-            
-                        // Usar sendSuccessDM para enviar el mensaje interactivo
+
+                        const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(buttons);
+
                         await sendSuccessDM(requester, dmContent, [actionRow]);
-            
                         logger.info(`DM interactivo enviado a ${requester.tag} con la lista de participantes.`);
                     } else {
-                        // Usar sendSuccessDM para enviar un mensaje sin botones
                         await sendSuccessDM(requester, dmContent);
                         logger.info(`DM enviado a ${requester.tag} sin participantes.`);
                     }
                 } catch (error) {
-                    logger.error(`Error al enviar DM a ${requester.tag}: ${error.message}`);
+                    if (error instanceof Error) {
+                        logger.error(`Error al enviar DM a ${requester.tag}: ${error.message}`);
+                    } else {
+                        logger.error(`Error al enviar DM a ${requester.tag}: ${String(error)}`);
+                    }
                 }
             });
         } catch (error) {
-            logger.error(`Error al configurar el recolector de reacciones: ${error.message}`);
+            if (error instanceof Error) {
+                logger.error(`Error al configurar el recolector de reacciones: ${error.message}`);
+            } else {
+                logger.error(`Error al configurar el recolector de reacciones: ${String(error)}`);
+            }
         }
     },
-    /**
-     * Crea un mensaje de anuncio para el grupo creado.
-     * @param {string} type - Tipo de actividad (PvE o PvP).
-     * @param {number} participants - Número de participantes.
-     * @param {string|null} role - Rol seleccionado (solo para PvE).
-     * @returns {string} - Mensaje de anuncio.
-     */
-    createAnnouncementMessage(type, participants, role = null) {
+
+    createAnnouncementMessage(type: string, participants: number, role: string | null = null): string {
         if (type === 'pve') {
             return `📢 **¡Se necesita ayuda para una actividad PvE!**\n` +
                 `🔹 **Participantes requeridos:** ${participants}\n` +
@@ -245,9 +256,10 @@ module.exports = {
                 `Reacciona con ✅ para unirte.`;
         }
     },
-    debugLog(message) {
+
+    debugLog(message: string) {
         if (DEBUG_MODE) {
             logger.debug(message);
         }
-    }
+    },
 };

@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // Versión de JavaScript a la que se compilará
+    "module": "CommonJS", // Módulos compatibles con Node.js
+    "strict": true, // Activa todas las comprobaciones estrictas de TypeScript
+    "esModuleInterop": true, // Habilita la interoperabilidad con módulos ES6
+    "forceConsistentCasingInFileNames": true, // Asegura consistencia en el uso de mayúsculas/minúsculas
+    "skipLibCheck": true, // Omite la verificación de tipos en los archivos de definición
+    "outDir": "./dist", // Carpeta de salida para los archivos compilados
+    "rootDir": "./src", // Carpeta raíz del código fuente
+    "resolveJsonModule": true, // Permite importar archivos JSON
+    "moduleResolution": "node", // Resolución de módulos estilo Node.js
+    "allowSyntheticDefaultImports": true, // Permite importar módulos con `import` en lugar de `require`
+    "allowJs": true // Permitir archivos .js
+  },
+  "include": ["src"], // Incluye todos los archivos dentro de la carpeta src
+  "exclude": ["node_modules", "dist"] // Excluye estas carpetas del proceso de compilación
+}

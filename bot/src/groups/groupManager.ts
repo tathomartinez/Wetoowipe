@@ -1,13 +1,36 @@
-const logger = require("../services/logger");
+import { Guild, GuildChannel, OverwriteResolvable } from 'discord.js';
+import logger from '../services/logger'; // Asegúrate de que la ruta sea correcta
 
-const util = require('util');
+interface Group {
+    id: string; // Cambiado de number a string
+    type: string;
+    participants: number;
+    role: string | null;
+    members: string[];
+    voiceChannelId: string;
+    link: string;
+    createdAt: Date;
+    teamCarry?: string[];
+}
 
 class GroupManager {
+    private groups: Group[]; // Lista de grupos
+
     constructor() {
-        this.groups = []; // Stack para almacenar los grupos
+        this.groups = [];
     }
 
-    async createGroup({ guild, type, participants, role }) {
+    async createGroup({
+        guild,
+        type,
+        participants,
+        role,
+    }: {
+        guild: Guild;
+        type: string;
+        participants: number;
+        role: string | null;
+    }): Promise<Group> {
         // Crear un canal de voz en el servidor
         const channelName = `Carry-${type}-${this.groups.length + 1}`;
         const channel = await guild.channels.create({
@@ -18,17 +41,17 @@ class GroupManager {
                     id: guild.roles.everyone.id, // Permisos para @everyone
                     deny: ['ViewChannel'], // Denegar acceso a todos
                 },
-            ],
+            ] as OverwriteResolvable[],
         });
 
-        const group = {
-            id: this.groups.length + 1, // Generar un ID único
+        const group: Group = {
+            id: String(this.groups.length + 1), // Convertir a string
             type,
             participants,
             role,
-            members: [], // Lista de IDs de Discord de los integrantes
-            voiceChannelId: channel.id, // Guardar el ID del canal de voz
-            link: `https://discord.com/channels/${guild.id}/${channel.id}`, // Link al canal de voz
+            members: [],
+            voiceChannelId: channel.id,
+            link: `https://discord.com/channels/${guild.id}/${channel.id}`,
             createdAt: new Date(),
         };
 
@@ -36,18 +59,17 @@ class GroupManager {
         return group;
     }
 
-    getGroups() {
+    getGroups(): Group[] {
         return this.groups;
     }
 
-    getGroupById(id) {
+    getGroupById(id: string): Group | undefined {
         logger.info(`Buscando grupo con ID: ${id}`);
         logger.info(`Grupos disponibles: ${this.groups.map(group => group.id)}`);
-        logger.info(`${util.inspect(this.groups)}`);
-        return this.groups.find(group => group.id === parseInt(id, 10)); // Convertir id a número
+        return this.groups.find(group => group.id === id);
     }
 
-    addMemberToGroup(groupId, memberId) {
+    addMemberToGroup(groupId: string, memberId: string): Group {
         const group = this.getGroupById(groupId);
         if (!group) {
             throw new Error(`El grupo con ID ${groupId} no existe.`);
@@ -61,9 +83,8 @@ class GroupManager {
         return group;
     }
 
-    async deleteGroup(groupId, guild) {
+    async deleteGroup(groupId: string, guild: Guild): Promise<string> {
         logger.info(`Eliminando grupo con ID: ${groupId}`);
-        // return "Grupo eliminado exitosamente. -- respuesta de prueba"; // Respuesta de prueba
         const groupIndex = this.groups.findIndex(group => group.id === groupId);
         if (groupIndex === -1) {
             throw new Error(`El grupo con ID ${groupId} no existe.`);
@@ -78,7 +99,11 @@ class GroupManager {
                 await channel.delete(`Grupo ${groupId} eliminado`);
             }
         } catch (error) {
-            console.warn(`No se pudo eliminar el canal de voz para el grupo ${groupId}:`, error.message);
+            if (error instanceof Error) {
+                logger.warn(`No se pudo eliminar el canal de voz para el grupo ${groupId}:`, error.message);
+            } else {
+                logger.warn(`No se pudo eliminar el canal de voz para el grupo ${groupId}: Error desconocido`);
+            }
         }
 
         // Eliminar el grupo del stack
@@ -86,7 +111,7 @@ class GroupManager {
         return `Grupo con ID ${groupId} eliminado exitosamente.`;
     }
 
-    moveMemberToTeamCarry(groupId, memberId) {
+    moveMemberToTeamCarry(groupId: string, memberId: string): boolean {
         const group = this.getGroupById(groupId);
 
         if (!group) {
@@ -114,4 +139,4 @@ class GroupManager {
     }
 }
 
-module.exports = new GroupManager();
+export default new GroupManager();
