@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const SimpsonService = require('../../servicios/SimpsonService');
+const SimpsonService = require('../../simpson/service/SimpsonService');
 
 module.exports = {
 	data: new SlashCommandBuilder()

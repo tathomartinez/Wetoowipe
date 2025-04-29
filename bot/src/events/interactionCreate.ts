@@ -1,6 +1,5 @@
 import { Events, CommandInteraction, Interaction } from 'discord.js';
 import logger from '../services/logger';
-import { inspect } from 'util';
 
 export default {
     name: Events.InteractionCreate,

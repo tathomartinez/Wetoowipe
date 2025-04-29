@@ -1,10 +1,22 @@
 import { SlashCommandBuilder, CommandInteraction } from 'discord.js';
-import SimpsonService from '../../servicios/SimpsonService';
+import SimpsonService from '../../simpson/service/SimpsonService';
 import logger from '../../services/logger';
 
 const data = new SlashCommandBuilder()
     .setName('rs')
     .setDescription('Capítulo aleatorio de los Simpsons');
+
+/**
+ * Genera el mensaje de respuesta para un episodio.
+ * @param episode Datos del episodio.
+ * @returns Mensaje formateado.
+ */
+const generateEpisodeMessage = (episode: { title: string; season: number; episode: number }): string => {
+    return `Hola
+hoy te recomendamos el capítulo **${episode.title}**
+Temporada: **${episode.season}**
+Capítulo: **${episode.episode}**`;
+};
 
 const execute = async (interaction: CommandInteraction) => {
     try {
@@ -12,16 +24,19 @@ const execute = async (interaction: CommandInteraction) => {
         await interaction.deferReply();
 
         const episode = await SimpsonService.getRandomEpisode();
-		logger.debug(`Capítulo aleatorio: ${episode.title}`);
-		logger.debug(episode);
 
-        await interaction.editReply(`Hola
-hoy te recomendamos el capítulo **${episode.title}**
-Temporada: **${episode.season}**
-Capítulo: **${episode.episode}**`);
+        if (!episode || !episode.title || !episode.season || !episode.episode) {
+            throw new Error('Datos del episodio incompletos o inválidos');
+        }
+
+        logger.debug(`Capítulo aleatorio obtenido: ${JSON.stringify(episode)}`);
+        const message = generateEpisodeMessage(episode);
+
+        await interaction.editReply(message);
     } catch (error) {
-		logger.error(`Error al ejecutar el comando ${interaction.commandName}: ${error}`);
-        await interaction.editReply('Ocurrió un error al obtener el capítulo. Por favor, inténtalo de nuevo más tarde.');
+        logger.error(`Error al ejecutar el comando ${interaction.commandName}: ${error}`);
+        const errorMessage = 'Ocurrió un error al obtener el capítulo. Por favor, inténtalo de nuevo más tarde.';
+        await interaction.editReply(errorMessage);
     }
 };
 
