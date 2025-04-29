@@ -1,14 +1,12 @@
 import { Events, CommandInteraction, Interaction } from 'discord.js';
 import logger from '../services/logger';
+import { inspect } from 'util';
 
 export default {
     name: Events.InteractionCreate,
     async execute(interaction: Interaction) {
-        logger.debug(`-------------------Interacción recibida: ${interaction.type}`);
         if (!interaction.isChatInputCommand()) return;
-
         const command = interaction.client.commands.get(interaction.commandName);
-        logger.debug(`Comando ejecutado: ${interaction.commandName}`);
         if (!command) {
             logger.error(`No se encontró un comando que coincida con ${interaction.commandName}.`);
             await interaction.reply({

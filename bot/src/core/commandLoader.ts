@@ -1,9 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { Client } from 'discord.js';
+import { Client, Collection } from 'discord.js';
 import logger from '../services/logger';
-import util from 'node:util';
-
 
 interface Command {
     data: {
@@ -17,10 +15,18 @@ interface Command {
  * @param client - El cliente de Discord.
  */
 function loadCommands(client: Client) {
+    // Inicializa la colección de comandos si no existe
+    if (!client.commands) {
+        client.commands = new Collection();
+        logger.debug('[INFO] Colección de comandos inicializada.');
+    }
+
     const commandsPath = path.join(__dirname, '../commands');
+    logger.debug(`[INFO] Directorio de comandos: ${commandsPath}`);
+
     loadRecursively(commandsPath, client);
 
-    console.log(`[INFO] Comandos cargados: ${Array.from(client.commands.keys()).join(', ')}`);
+    logger.info(`[INFO] Comandos cargados: ${Array.from(client.commands.keys()).join(', ')}`);
 }
 
 /**
@@ -35,22 +41,21 @@ function loadRecursively(dir: string, client: Client) {
         const fullPath = path.join(dir, file);
         const stat = fs.statSync(fullPath);
 
-        logger.debug(`Cargando comando: ${fullPath}`);
-        logger.debug(`Tipo de archivo: ${stat.isDirectory() ? 'Directorio' : 'Archivo'}`);
-        logger.debug(`Nombre del archivo: ${file}`);
-
         if (stat.isDirectory()) {
-            logger.debug(`Entrando en directorio: ${fullPath}`);
             loadRecursively(fullPath, client);
         } else if (file.endsWith('.ts') || file.endsWith('.js')) {
-            logger.debug(`Cargando archivo de comando: ${fullPath}`);
-            const command = require(fullPath) as Command;
-            logger.debug(`Comando cargado: ${util.inspect(command)}`);
-            if ('data' in command && 'execute' in command) {
-                client.commands.set(command.data.name, command);
-                logger.debug(`Comando cargado: ${command.data.name}`);
-            } else {
-                logger.warn(`[WARNING] El comando ${file} no tiene 'data' o 'execute'.`);
+            try {
+                const commandModule = require(fullPath);
+                const command = commandModule.default || commandModule;
+                if (command?.data?.toJSON) {
+                    ;
+                    client.commands.set(command.data.name, command);
+                    logger.info(`[INFO] Comando registrado: ${command.data.name}`);
+                } else {
+                    logger.warn(`[WARNING] Skipped ${file} - missing .data.toJSON()`);
+                }
+            } catch (error) {
+                logger.error(`[ERROR] No se pudo cargar el comando ${file}:`, error);
             }
         }
     }

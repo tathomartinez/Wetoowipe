@@ -1,6 +1,7 @@
 import { Events, VoiceState, Guild, VoiceChannel } from 'discord.js';
 import { musicPlayer } from '../core/musicPlayer'; // Importar la función musicPlayer
 import AudioPaths from '../audio/audioPaths'; // Importar el "enum"
+import logger from '../services/logger';
 
 export default {
     name: Events.VoiceStateUpdate,
@@ -8,7 +9,7 @@ export default {
     async execute(oldState: VoiceState, newState: VoiceState): Promise<void> {
         try {
             // Salir si el usuario no se conectó a un canal de voz
-            const botId = '868646244380192818'; // ID del bot
+            const botId = process.env.BOT_ID; // ID del bot
             if (newState.member?.id === botId) {
                 return;
             }
@@ -16,17 +17,11 @@ export default {
             if (oldState.channel || !newState.channel) {
                 return;
             }
+            logger.debug(`Estado de voz actualizado: ${newState.member?.user.tag} se unió al canal ${newState.channel.name}`);
 
-            console.log(`${newState.member?.user.tag} se conectó al canal de voz: ${newState.channel.name}`);
+            logger.debug(`${newState.member?.user.tag} se unió al canal de voz: ${newState.channel.name}`);
 
-            // Salir si no es el usuario específico
-            // const specificUserId = '214877856994557952';
-            // if (newState.member?.id !== specificUserId) {
-            //     return;
-            // }
-
-            console.log(`El usuario específico ${newState.member?.user.tag} se conectó al canal de voz: ${newState.channel.name}`);
-
+            logger.debug(`El usuario específico ${newState.member?.user.tag} se conectó al canal de voz: ${newState.channel.name}`);
             // Ejecutar musicPlayer
             await musicPlayer({
                 voiceChannel: newState.channel as VoiceChannel,
@@ -34,7 +29,7 @@ export default {
                 audioPath: AudioPaths.BIENVENIDO,
             });
         } catch (error) {
-            console.error('Error en el evento VoiceStateUpdate:', error);
+            logger.error('Error en el evento VoiceStateUpdate:', error);
         }
     },
 };
