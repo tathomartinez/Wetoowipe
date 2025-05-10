@@ -48,7 +48,7 @@ export default {
 
     async execute(interaction: CommandInteraction) {
         try {
-
+            logger.debug(`Comando requirecarry ejecutado por ${util.inspect(interaction, { depth: null })}`);
             logger.debug(`Comando requirecarry ejecutado por ${util.inspect(interaction.user, { depth: null })}`);
             const tipo = (interaction.options as CommandInteractionOptionResolver).getString('tipo', true);
             const participantes = (interaction.options as CommandInteractionOptionResolver).getNumber('participantes', true);
