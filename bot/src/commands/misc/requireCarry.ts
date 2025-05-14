@@ -62,9 +62,9 @@ export default {
             }
         } catch (error) {
             if (error instanceof Error) {
-                logger.error(`Error en el comando requirecarry: ${error.message}`);
+                logger.debug(`Error en el comando requirecarry: ${error.message}`);
             } else {
-                logger.error(`Error en el comando requirecarry: ${String(error)}`);
+                logger.debug(`Error en el comando requirecarry: ${String(error)}`);
             }
             await interaction.reply({
                 content: 'Ocurrió un error al procesar tu solicitud. Por favor intenta nuevamente.',
@@ -173,9 +173,9 @@ export default {
                     return reaction.emoji.name === '✅' && !user.bot;
                 } catch (error) {
                     if (error instanceof Error) {
-                        logger.error(`Error al procesar reacción: ${error.message}`);
+                        logger.debug(`Error al procesar reacción: ${error.message}`);
                     } else {
-                        logger.error(`Error al procesar reacción: ${String(error)}`);
+                        logger.debug(`Error al procesar reacción: ${String(error)}`);
                     }
                     return false;
                 }
@@ -196,12 +196,12 @@ export default {
                 logger.info(`Período de recolección de reacciones finalizado para el grupo ${groupId}. Total: ${collected.size}`);
                 const group = groupManager.getGroupById(groupId);
                 if (!group) {
-                    logger.error(`No se encontró el grupo con ID ${groupId}.`);
+                    logger.debug(`No se encontró el grupo con ID ${groupId}.`);
                     return;
                 }
 
                 if (!group) {
-                    logger.error(`No se encontró el grupo con ID ${groupId}.`);
+                    logger.debug(`No se encontró el grupo con ID ${groupId}.`);
                     return;
                 }
 
@@ -230,17 +230,17 @@ export default {
                     }
                 } catch (error) {
                     if (error instanceof Error) {
-                        logger.error(`Error al enviar DM a ${requester.tag}: ${error.message}`);
+                        logger.debug(`Error al enviar DM a ${requester.tag}: ${error.message}`);
                     } else {
-                        logger.error(`Error al enviar DM a ${requester.tag}: ${String(error)}`);
+                        logger.debug(`Error al enviar DM a ${requester.tag}: ${String(error)}`);
                     }
                 }
             });
         } catch (error) {
             if (error instanceof Error) {
-                logger.error(`Error al configurar el recolector de reacciones: ${error.message}`);
+                logger.debug(`Error al configurar el recolector de reacciones: ${error.message}`);
             } else {
-                logger.error(`Error al configurar el recolector de reacciones: ${String(error)}`);
+                logger.debug(`Error al configurar el recolector de reacciones: ${String(error)}`);
             }
         }
     },

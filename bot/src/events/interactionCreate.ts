@@ -7,7 +7,7 @@ export default {
         if (!interaction.isChatInputCommand()) return;
         const command = interaction.client.commands.get(interaction.commandName);
         if (!command) {
-            logger.error(`No se encontró un comando que coincida con ${interaction.commandName}.`);
+            logger.debug(`No se encontró un comando que coincida con ${interaction.commandName}.`);
             await interaction.reply({
                 content: 'Este comando no está registrado.',
                 ephemeral: true,
@@ -18,7 +18,7 @@ export default {
         try {
             await command.execute(interaction);
         } catch (error: any) {
-            logger.error(`Error al ejecutar el comando ${interaction.commandName}: ${error.message}`);
+            logger.debug(`Error al ejecutar el comando ${interaction.commandName}: ${error.message}`);
             await interaction.reply({
                 content: 'Hubo un error al ejecutar este comando.',
                 ephemeral: true,

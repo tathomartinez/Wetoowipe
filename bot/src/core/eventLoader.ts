@@ -22,7 +22,7 @@ export default async (client: Client): Promise<void> => {
             const event: Event = eventModule.default;
 
             if (!event || typeof event.name !== 'string' || typeof event.execute !== 'function') {
-                logger.error(`[ERROR] El archivo ${file} no exporta un evento válido.`);
+                logger.debug(`[ERROR] El archivo ${file} no exporta un evento válido.`);
                 continue;
             }
 
@@ -34,7 +34,7 @@ export default async (client: Client): Promise<void> => {
                 client.on(event.name, (...args) => event.execute(...args));
             }
         } catch (error) {
-            logger.error(`[ERROR] No se pudo cargar el archivo ${file}: ${error instanceof Error ? error.message : String(error)}`);
+            logger.debug(`[ERROR] No se pudo cargar el archivo ${file}: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 };

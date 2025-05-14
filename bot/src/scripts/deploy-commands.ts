@@ -8,7 +8,7 @@ import logger from '../services/logger';
 const { TOKEN, CLIENT_ID, GUILD_ID } = process.env;
 
 if (!TOKEN || !CLIENT_ID || !GUILD_ID) {
-    logger.error('[DEPLOY] Asegúrate de que están definidas en el archivo .env.');
+    logger.debug('[DEPLOY] Asegúrate de que están definidas en el archivo .env.');
     process.exit(1);
 }
 
@@ -46,7 +46,7 @@ function readCommands(dir: string) {
                     logger.warn(`[WARNING] Skipped ${file} - missing .data.toJSON()`);
                 }
             } catch (error) {
-                logger.error(`[ERROR] Error al cargar el comando ${file}:`, error);
+                logger.debug(`[ERROR] Error al cargar el comando ${file}:`, error);
             }
         }
     }
@@ -68,6 +68,6 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 
         logger.info(`[DEPLOY] Comandos registrados: ${data.map(command => command.name).join(', ')}`);
     } catch (error) {
-        logger.error(`[DEPLOY] Error al registrar comandos: ${error}`);
+        logger.debug(`[DEPLOY] Error al registrar comandos: ${error}`);
     }
 })();

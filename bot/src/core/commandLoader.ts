@@ -55,7 +55,7 @@ function loadRecursively(dir: string, client: Client) {
                     logger.warn(`[WARNING] Skipped ${file} - missing .data.toJSON()`);
                 }
             } catch (error) {
-                logger.error(`[ERROR] No se pudo cargar el comando ${file}:`, error);
+                logger.debug(`[ERROR] No se pudo cargar el comando ${file}:`, error);
             }
         }
     }

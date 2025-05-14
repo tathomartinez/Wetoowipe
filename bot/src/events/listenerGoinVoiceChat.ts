@@ -29,7 +29,7 @@ export default {
                 audioPath: AudioPaths.BIENVENIDO,
             });
         } catch (error) {
-            logger.error('Error en el evento VoiceStateUpdate:', error);
+            logger.debug('Error en el evento VoiceStateUpdate:', error);
         }
     },
 };

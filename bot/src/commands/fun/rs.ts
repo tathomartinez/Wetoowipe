@@ -34,7 +34,7 @@ const execute = async (interaction: CommandInteraction) => {
 
         await interaction.editReply(message);
     } catch (error) {
-        logger.error(`Error al ejecutar el comando ${interaction.commandName}: ${error}`);
+        logger.debug(`Error al ejecutar el comando ${interaction.commandName}: ${error}`);
         const errorMessage = 'Ocurrió un error al obtener el capítulo. Por favor, inténtalo de nuevo más tarde.';
         await interaction.editReply(errorMessage);
     }

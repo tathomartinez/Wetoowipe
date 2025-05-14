@@ -115,14 +115,14 @@ class GroupManager {
         const group = this.getGroupById(groupId);
 
         if (!group) {
-            logger.error(`No se encontró el grupo con ID ${groupId}.`);
+            logger.debug(`No se encontró el grupo con ID ${groupId}.`);
             return false;
         }
 
         // Verificar si el miembro está en la lista de members
         const memberIndex = group.members.indexOf(memberId);
         if (memberIndex === -1) {
-            logger.error(`El miembro con ID ${memberId} no está en el grupo ${groupId}.`);
+            logger.debug(`El miembro con ID ${memberId} no está en el grupo ${groupId}.`);
             return false;
         }
 

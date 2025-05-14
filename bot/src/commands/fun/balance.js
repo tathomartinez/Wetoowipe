@@ -48,7 +48,7 @@ module.exports = {
                 logger.info('Respuesta enviada al usuario con éxito.');
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                logger.error('Error en la respuesta del API:', errorData);
+                logger.debug('Error en la respuesta del API:', errorData);
 
                 if (response.status === 404) {
                     await interaction.editReply('❌ No se encontró una cuenta asociada a tu usuario. Por favor, utiliza el comando `/register` para crear una cuenta.');
@@ -58,7 +58,7 @@ module.exports = {
                 throw new Error(errorData.message || `HTTP ${response.status}`);
             }
         } catch (error) {
-            logger.error('Error en comando balance:', error);
+            logger.debug('Error en comando balance:', error);
 
             if (!interaction.replied) {
                 await interaction.editReply('❌ Ocurrió un error inesperado. Intenta nuevamente más tarde.');

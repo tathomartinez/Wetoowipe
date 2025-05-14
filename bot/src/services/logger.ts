@@ -19,6 +19,16 @@ const logger: Logger = createLogger({
             level: 'debug', // Guardar logs de nivel debug en un archivo separado
         }),
     ],
+    exceptionHandlers: [
+        new transports.File({
+            filename: path.join(__dirname, '../../logs/exceptions.log'),
+        }),
+    ],
+    rejectionHandlers: [
+        new transports.File({
+            filename: path.join(__dirname, '../../logs/rejections.log'),
+        }),
+    ],
 });
 
 // Exportar el logger como un singleton
