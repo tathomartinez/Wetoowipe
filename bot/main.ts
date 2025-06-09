@@ -13,4 +13,4 @@ startJokeCycle(client);
 
 // Iniciar sesión en Discord
 client.login(process.env.TOKEN);
-scheduleDailySoundtrack(client);
+// scheduleDailySoundtrack(client);
