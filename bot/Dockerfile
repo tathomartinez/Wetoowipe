@@ -12,7 +12,8 @@ COPY package*.json tsconfig.json ./
 RUN npm install
 
 # Instalamos TypeScript, nodemon y ts-node globalmente
-RUN npm install -g typescript nodemon ts-node
+RUN npm install -g typescript nodemon ts-node 
+RUN npm install --save-dev @types/node-cron
 
 # Copiamos el resto del proyecto
 COPY . .

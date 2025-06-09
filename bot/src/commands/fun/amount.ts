@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, CommandInteraction, User } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, CommandInteraction, User, ChatInputCommandInteraction } from 'discord.js';
 import crypto from 'crypto';
 import fetch from 'node-fetch';
 import logger from '../../services/logger';
@@ -22,8 +22,9 @@ export default {
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            const valor = interaction.options.getInteger('valor', true);
-            const destinatario = (interaction.options as CommandInteractionOptionResolver).getUser('destinatario', true);
+            const chatInputInteraction = interaction as ChatInputCommandInteraction;
+            const valor = chatInputInteraction.options.getInteger('valor', true);
+            const destinatario = chatInputInteraction.options.getUser('destinatario', true);
 
             // Validación mejorada
             if (valor <= 0) {
@@ -85,7 +86,10 @@ async function logTransaction(valor: number, destinatario: User): Promise<void> 
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || `HTTP ${response.status}`);
+            const message = (typeof errorData === 'object' && errorData !== null && 'message' in errorData)
+                ? (errorData as { message?: string }).message
+                : undefined;
+            throw new Error(message || `HTTP ${response.status}`);
         }
 
         logger.debug('Transacción registrada exitosamente:', await response.json());
