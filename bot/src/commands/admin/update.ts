@@ -1,6 +1,5 @@
 import { CommandInteractionOptionResolver, SlashCommandBuilder, EmbedBuilder, CommandInteraction, GuildMember, Role, Guild, ColorResolvable } from 'discord.js';
-import fetch from 'node-fetch';
-import config from '../../config/config';
+import { config } from '../../config/config';
 import logger from '../../services/logger';
 
 export default {

@@ -59,7 +59,7 @@ export async function playTTS(interaction: ChatInputCommandInteraction, text: st
         const getResult = await getTTSResult(TTS_SERVER_URL, eventId);
         logger.debug(`Respuesta GET del servidor TTS: ${JSON.stringify(getResult)}`);
 
-        const audioFile = getResult.find((f: { orig_name: string }) => f.orig_name === AUDIO_FILENAME);
+        const audioFile = getResult.find((f: { orig_name?: string }) => f.orig_name === AUDIO_FILENAME);
         if (!audioFile?.url) {
             logger.debug('No se pudo obtener la URL del archivo de audio.');
             throw new Error('No se pudo obtener la URL del archivo de audio.');

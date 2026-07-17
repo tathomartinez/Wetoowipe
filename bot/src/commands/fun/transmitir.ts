@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, Guild, VoiceChannel, GuildMember } from 'discord.js';
 import { musicPlayer } from '../../core/musicPlayer';
-import AudioPaths from '../../audio/audioPaths';
+import { AudioPaths } from '../../audio/audioPaths';
 
 export const data = new SlashCommandBuilder()
     .setName('movie')

@@ -1,6 +1,6 @@
 import { Events, VoiceState, Guild, VoiceChannel } from 'discord.js';
 import { musicPlayer } from '../core/musicPlayer'; // Importar la función musicPlayer
-import AudioPaths from '../audio/audioPaths'; // Importar el "enum"
+import { AudioPaths } from '../audio/audioPaths'; // Importar el "enum"
 import logger from '../services/logger';
 
 export default {

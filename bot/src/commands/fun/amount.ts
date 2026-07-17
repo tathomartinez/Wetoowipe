@@ -1,6 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, CommandInteraction, User, ChatInputCommandInteraction } from 'discord.js';
 import crypto from 'crypto';
-import fetch from 'node-fetch';
 import logger from '../../services/logger';
 
 export default {

@@ -15,7 +15,7 @@ test-docker:
 	docker-compose run --rm test
 
 deploy: test-docker
-	docker-compose run --rm deploy-commands node src/scripts/deploy-commands.js
+	docker-compose run --rm deploy-commands
 
 full-deploy: build deploy
 

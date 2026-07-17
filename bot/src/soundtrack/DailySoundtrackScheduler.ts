@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { Client, Guild, VoiceChannel } from 'discord.js';
 import { musicPlayer } from '../core/musicPlayer';
-import AudioPaths from '../audio/audioPaths';
+import { AudioPaths } from '../audio/audioPaths';
 import logger from '../services/logger';
 
 const GUILD_ID = '577233229136920586';
