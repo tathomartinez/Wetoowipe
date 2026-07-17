@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2021", // Versión de JavaScript a la que se compilará
-    "module": "NodeNext", // Módulos compatibles con Node.js
+    "module": "CommonJS",
     "lib": ["es2021"],
-    "strict": true, // Activa todas las comprobaciones estrictas de TypeScript
-    "esModuleInterop": true, // Habilita la interoperabilidad con módulos ES6
-    "forceConsistentCasingInFileNames": true, // Asegura consistencia en el uso de mayúsculas/minúsculas
-    "skipLibCheck": true, // Omite la verificación de tipos en los archivos de definición
-    "outDir": "./dist", // Carpeta de salida para los archivos compilados
-    "rootDir": "./src", // Carpeta raíz del código fuente
-    "resolveJsonModule": true, // Permite importar archivos JSON
-    "moduleResolution": "NodeNext", // Resolución de módulos estilo Node.js
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
     "allowSyntheticDefaultImports": true, // Permite importar módulos con `import` en lugar de `require`
     "allowJs": true // Permitir archivos .js
   },
