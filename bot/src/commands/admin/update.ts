@@ -1,4 +1,4 @@
-import { CommandInteractionOptionResolver, SlashCommandBuilder, EmbedBuilder, CommandInteraction, GuildMember, Role, Guild, ColorResolvable } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, GuildMember, Role, Guild, ColorResolvable } from 'discord.js';
 import { config } from '../../config/config';
 import logger from '../../services/logger';
 
@@ -11,8 +11,8 @@ export default {
                 .setDescription('URL de tu perfil Raider.IO')
                 .setRequired(true),
         ),
-    async execute(interaction: CommandInteraction): Promise<void> {
-        const urlInput = (interaction.options as CommandInteractionOptionResolver).getString('url', true);
+    async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+        const urlInput = interaction.options.getString('url', true);
         await interaction.deferReply({ ephemeral: true });
 
         try {

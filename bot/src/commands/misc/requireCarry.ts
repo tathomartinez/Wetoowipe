@@ -4,11 +4,10 @@ import {
     StringSelectMenuBuilder,
     ButtonBuilder,
     ButtonStyle,
-    CommandInteraction,
+    ChatInputCommandInteraction,
     Message,
     Guild,
     User,
-    CommandInteractionOptionResolver,
 } from 'discord.js';
 import groupManager from '../../groups/groupManager';
 import { sendMessageToChannel } from '../../utils/channelWriter';
@@ -46,12 +45,12 @@ export default {
                 .setMinValue(1)
         ),
 
-    async execute(interaction: CommandInteraction) {
+    async execute(interaction: ChatInputCommandInteraction) {
         try {
             logger.debug(`Comando requirecarry ejecutado por ${util.inspect(interaction, { depth: null })}`);
             logger.debug(`Comando requirecarry ejecutado por ${util.inspect(interaction.user, { depth: null })}`);
-            const tipo = (interaction.options as CommandInteractionOptionResolver).getString('tipo', true);
-            const participantes = (interaction.options as CommandInteractionOptionResolver).getNumber('participantes', true);
+            const tipo = interaction.options.getString('tipo', true);
+            const participantes = interaction.options.getNumber('participantes', true);
 
             logger.info(`Comando requirecarry ejecutado por ${interaction.user.tag}. Tipo: ${tipo}, Participantes: ${participantes}`);
 
@@ -73,7 +72,7 @@ export default {
         }
     },
 
-    async handlePvE(interaction: CommandInteraction, participants: number) {
+    async handlePvE(interaction: ChatInputCommandInteraction, participants: number) {
         logger.info(`Procesando solicitud PvE de ${interaction.user.tag} con ${participants} participantes.`);
         const rolesMenu = new StringSelectMenuBuilder()
             .setCustomId('select-role')
@@ -92,13 +91,13 @@ export default {
             ephemeral: true,
         });
 
-        const filter = (i: any) => i.customId === 'select-role' && i.user.id === interaction.user.id;
+        const filter = (i: { customId: string; user: { id: string } }) => i.customId === 'select-role' && i.user.id === interaction.user.id;
         const collector = interaction.channel?.createMessageComponentCollector({
             filter,
             time: 15000,
         });
 
-        collector?.on('collect', async i => {
+        collector?.on('collect', async (i: { isStringSelectMenu: () => boolean; values: string[]; editReply: (arg0: { content: string }) => void }) => {
             if (i.isStringSelectMenu()) {
                 const role = i.values[0];
                 await this.createAndSetupGroup(interaction, 'pve', participants, role);
@@ -108,7 +107,7 @@ export default {
             });
         });
 
-        collector?.on('end', collected => {
+        collector?.on('end', (collected: { size: number }) => {
             if (collected.size === 0) {
                 logger.warn(`El usuario ${interaction.user.tag} no seleccionó un rol a tiempo.`);
                 interaction.editReply({
@@ -119,7 +118,7 @@ export default {
         });
     },
 
-    async handlePvP(interaction: CommandInteraction, participants: number) {
+    async handlePvP(interaction: ChatInputCommandInteraction, participants: number) {
         logger.info(`Procesando solicitud PvP de ${interaction.user.tag} con ${participants} participantes.`);
         await interaction.deferReply({ ephemeral: true });
         await this.createAndSetupGroup(interaction, 'pvp', participants);
@@ -128,7 +127,7 @@ export default {
         });
     },
 
-    async createAndSetupGroup(interaction: CommandInteraction, type: string, participants: number, role: string | null = null) {
+    async createAndSetupGroup(interaction: ChatInputCommandInteraction, type: string, participants: number, role: string | null = null) {
         logger.info(`Creando grupo para ${interaction.user.tag}. Tipo: ${type}, Participantes: ${participants}, Rol: ${role || 'N/A'}`);
         const group = await groupManager.createGroup({
             guild: interaction.guild as Guild,

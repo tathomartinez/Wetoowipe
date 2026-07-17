@@ -24,9 +24,10 @@ services:
       - .env
     working_dir: /usr/src/app
     volumes:
-      - .:/usr/src/app
-    entrypoint: ["npx", "ts-node", "./bot/src/scripts/deploy-commands.ts"]
-    # entrypoint: ["ls", "./bot/src/scripts"]
+      - ./bot/src:/usr/src/app/src
+      - ./bot/tsconfig.json:/usr/src/app/tsconfig.json
+      - ./bot/package.json:/usr/src/app/package.json
+    entrypoint: ["sh", "-c", "npm install && npx ts-node src/scripts/deploy-commands.ts"]
 
   test:
     build:

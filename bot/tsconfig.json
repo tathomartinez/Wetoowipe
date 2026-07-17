@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2021", // Versión de JavaScript a la que se compilará
-    "module": "Node16", // Módulos compatibles con Node.js
+    "module": "NodeNext", // Módulos compatibles con Node.js
     "lib": ["es2021"],
     "strict": true, // Activa todas las comprobaciones estrictas de TypeScript
     "esModuleInterop": true, // Habilita la interoperabilidad con módulos ES6
@@ -10,7 +10,7 @@
     "outDir": "./dist", // Carpeta de salida para los archivos compilados
     "rootDir": "./src", // Carpeta raíz del código fuente
     "resolveJsonModule": true, // Permite importar archivos JSON
-    "moduleResolution": "node16", // Resolución de módulos estilo Node.js
+    "moduleResolution": "NodeNext", // Resolución de módulos estilo Node.js
     "allowSyntheticDefaultImports": true, // Permite importar módulos con `import` en lugar de `require`
     "allowJs": true // Permitir archivos .js
   },

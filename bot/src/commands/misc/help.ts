@@ -1,11 +1,12 @@
-import { SlashCommandBuilder, EmbedBuilder, CommandInteraction } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, Client, Collection } from 'discord.js';
+import type { Command } from '../../core/client.js';
 
 export const data = new SlashCommandBuilder()
     .setName('help')
     .setDescription('Muestra todos los comandos disponibles');
 
-export async function execute(interaction: CommandInteraction): Promise<void> {
-    const commands = interaction.client.commands;
+export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
+    const commands = (interaction.client as Client & { commands: Collection<string, Command> }).commands;
 
     const embed = new EmbedBuilder()
         .setTitle('📖 Lista de comandos disponibles')

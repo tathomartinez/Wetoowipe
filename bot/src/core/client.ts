@@ -1,7 +1,7 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { CommandInteraction } from 'discord.js';
 
-interface Command {
+export interface Command {
     data: {
         name: string;
     };    
