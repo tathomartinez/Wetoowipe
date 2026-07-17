@@ -60,6 +60,10 @@ All commands via `Makefile` at repo root:
 - ESLint config in `bot/.eslintrc.json` (not flat config)
 - `no-console: off`, `no-var: error`, `prefer-const: error`
 
+## Known quirks
+- F5-TTS: `pip install -e .` upgrades torch beyond compatible torchaudio. Fix: pinned to torch==2.5.1 torchaudio==2.5.1 torchvision==0.20.1 at startup. Adds ~1-2 min initial boot.
+- Full `docker compose build f5-tts` takes >10 min (clones repo + builds deps). Prefer keeping the cached image.
+
 ## Migrations completed
 - All `.js` source files converted to `.ts` — no `.js` files remain in `bot/src/`
 - Unified dirs: `servicios/` → `services/`, `util/` → `utils/`
