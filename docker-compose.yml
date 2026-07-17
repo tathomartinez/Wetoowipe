@@ -129,7 +129,7 @@ services:
     runtime: nvidia
     networks:
       - my_network
-    command: ["f5-tts_infer-gradio", "--host", "0.0.0.0"]
+    command: ["sh", "-c", "pip install -q torch==2.5.1 torchaudio==2.5.1 torchvision==0.20.1 && f5-tts_infer-gradio --host 0.0.0.0"]
 
   file-server:
     image: nginx:latest
