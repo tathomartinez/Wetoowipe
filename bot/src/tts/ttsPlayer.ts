@@ -10,7 +10,7 @@ import logger from '../services/logger';
 import { ChatInputCommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 
 const TTS_SERVER_URL = process.env.TTS_SERVER_URL || '';
-const FILE_SERVER_URL = process.env.FILE_SERVER_URL || '';
+const FILE_SERVER_INTERNAL_URL = process.env.FILE_SERVER_INTERNAL_URL || '';
 const AUDIO_FILENAME = 'audio.wav';
 
 /**
@@ -32,7 +32,7 @@ export async function playTTS(interaction: ChatInputCommandInteraction, text: st
         const postData = {
             data: [
                 {
-                    path: `${FILE_SERVER_URL}/mapacha_rev.wav`,
+                    path: `${FILE_SERVER_INTERNAL_URL}/mapacha_rev.wav`,
                     meta: { _type: "gradio.FileData" }
                 },
                 "",
