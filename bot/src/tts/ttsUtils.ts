@@ -1,6 +1,15 @@
 import fs from 'fs';
+import { spawn } from 'child_process';
 import { ChatInputCommandInteraction, VoiceChannel } from 'discord.js';
-import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
+import {
+    joinVoiceChannel,
+    createAudioPlayer,
+    createAudioResource,
+    AudioPlayerStatus,
+    StreamType,
+    entersState,
+    VoiceConnectionStatus,
+} from '@discordjs/voice';
 
 interface TTSResponse {
     event_id?: string;
@@ -58,20 +67,45 @@ export async function playAudioInVoiceChannel(
         adapterCreator: interaction.guild!.voiceAdapterCreator as never,
     });
 
+    try {
+        await entersState(connection, VoiceConnectionStatus.Ready, 10_000);
+    } catch {
+        connection.destroy();
+        throw new Error('No se pudo conectar al canal de voz en 10s');
+    }
+
     const player = createAudioPlayer();
-    const resource = createAudioResource(audioPath);
+
+    const ffmpeg = spawn('ffmpeg', [
+        '-i', audioPath,
+        '-f', 's16le',
+        '-ar', '48000',
+        '-ac', '2',
+        '-',
+    ], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+    const resource = createAudioResource(ffmpeg.stdout!, {
+        inputType: StreamType.Raw,
+    });
 
     connection.subscribe(player);
     player.play(resource);
 
-    player.on(AudioPlayerStatus.Idle, () => {
-        connection.destroy();
-        fs.unlinkSync(audioPath);
-    });
+    return new Promise<void>((resolve, reject) => {
+        const cleanup = () => {
+            connection.destroy();
+            if (!ffmpeg.killed) ffmpeg.kill();
+            try { fs.unlinkSync(audioPath); } catch {}
+        };
 
-    player.on('error', error => {
-        console.error('Error en la reproducción de audio:', error);
-        connection.destroy();
-        fs.unlinkSync(audioPath);
+        player.on(AudioPlayerStatus.Idle, () => {
+            cleanup();
+            resolve();
+        });
+
+        player.on('error', error => {
+            cleanup();
+            reject(error);
+        });
     });
 }

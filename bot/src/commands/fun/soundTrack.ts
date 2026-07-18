@@ -16,16 +16,22 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
             return;
         }
 
+        await interaction.deferReply();
+
         await musicPlayer({
             voiceChannel,
             guild: interaction.guild as Guild,
             audioPath: AudioPaths.help,
         });
 
-        await interaction.reply({ content: '🎵 Reproduciendo audio en el canal de voz.', ephemeral: true });
+        await interaction.editReply('🎵 Reproduciendo audio en el canal de voz.');
     } catch (error) {
         console.error('Error al ejecutar el comando soundtrack:', error);
-        await interaction.reply({ content: '❌ No se pudo reproducir el audio.', ephemeral: true });
+        if (interaction.deferred || interaction.replied) {
+            await interaction.editReply('❌ No se pudo reproducir el audio.');
+        } else {
+            await interaction.reply({ content: '❌ No se pudo reproducir el audio.', ephemeral: true });
+        }
     }
 }
 
