@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
+import logger from '../../services/logger';
+
 export const data = new SlashCommandBuilder()
     .setName('crearcuenta')
     .setDescription('Crea una cuenta bancaria vinculada a tu usuario');
@@ -8,23 +10,23 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
     await interaction.deferReply({ ephemeral: true });
 
     try {
-        console.log('Comando crearcuenta iniciado.');
+        logger.info('Comando crearcuenta iniciado.');
 
         const userId = interaction.user.id;
         const userName = interaction.user.username;
-        console.log(`Usuario: ${userName} (ID: ${userId})`);
+        logger.debug(`Usuario: ${userName} (ID: ${userId})`);
 
         const payload = {
             numeroCuenta: userId,
             nombre: userName,
             saldo: 0
         };
-        console.log('Payload preparado:', payload);
+        logger.debug('Payload preparado:', payload);
 
         const apiUrl = process.env.GO_API_URL || 'http://localhost:8080';
         const accountEndpoint = `${apiUrl}/api/v1/accounts`;
 
-        console.log(`Llamando al endpoint de creación de cuentas: ${accountEndpoint}`);
+        logger.debug(`Llamando al endpoint de creación de cuentas: ${accountEndpoint}`);
         const response = await fetch(accountEndpoint, {
             method: 'POST',
             headers: {
@@ -34,7 +36,7 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
             body: JSON.stringify(payload)
         });
 
-        console.log('Respuesta del API recibida:', response.status);
+        logger.debug(`Respuesta del API recibida: ${response.status}`);
 
         if (response.ok) {
             const data = await response.json() as {
@@ -43,7 +45,7 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
                 Saldo?: number;
                 FechaCreacion?: string;
             };
-            console.log('Datos de la respuesta del API:', data);
+            logger.debug('Datos de la respuesta del API:', data);
 
             const embed = new EmbedBuilder()
                 .setColor('#00FF00')
@@ -59,11 +61,11 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
             await interaction.editReply({ embeds: [embed] });
         } else {
             const errorData = await response.json().catch(() => ({})) as { message?: string };
-            console.error('Error en la respuesta del API:', errorData);
+            logger.error('Error en la respuesta del API:', errorData);
             throw new Error(errorData.message || `HTTP ${response.status}`);
         }
     } catch (error) {
-        console.error('Error en comando crearcuenta:', error);
+        logger.error('Error en comando crearcuenta:', error);
         await interaction.editReply('❌ Ocurrió un error al crear tu cuenta. Intenta nuevamente más tarde.');
     }
 }

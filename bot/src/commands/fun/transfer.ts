@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
+import logger from '../../services/logger';
+
 export const data = new SlashCommandBuilder()
     .setName('transfer')
     .setDescription('Transfiere saldo a otro usuario')
@@ -24,8 +26,8 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
         const fromAccount = interaction.user.id;
         const toAccount = beneficiary.id;
 
-        console.log(`Transferencia iniciada por ${interaction.user.username} (ID: ${fromAccount})`);
-        console.log(`Beneficiario: ${beneficiary.username} (ID: ${toAccount}), Monto: ${amount}`);
+        logger.info(`Transferencia iniciada por ${interaction.user.username} (ID: ${fromAccount})`);
+        logger.debug(`Beneficiario: ${beneficiary.username} (ID: ${toAccount}), Monto: ${amount}`);
 
         const apiUrl = process.env.GO_API_URL || 'http://localhost:8080';
         const transferEndpoint = `${apiUrl}/api/v1/accounts/${fromAccount}/transfer`;
@@ -44,8 +46,6 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
         });
 
         if (response.ok) {
-            const data = await response.json();
-
             const embed = new EmbedBuilder()
                 .setColor('#00FF00')
                 .setTitle('✅ Transferencia exitosa')
@@ -57,11 +57,11 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
             await interaction.editReply({ embeds: [embed] });
         } else {
             const errorData = await response.json().catch(() => ({})) as { message?: string };
-            console.error('Error en la respuesta del API:', errorData);
+            logger.error('Error en la respuesta del API:', errorData);
             throw new Error(errorData.message || `HTTP ${response.status}`);
         }
     } catch (error) {
-        console.error('Error en comando transfer:', error);
+        logger.error('Error en comando transfer:', error);
         await interaction.editReply('❌ Ocurrió un error al realizar la transferencia. Intenta nuevamente más tarde.');
     }
 }

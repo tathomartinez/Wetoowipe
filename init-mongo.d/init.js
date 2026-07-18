@@ -1,14 +1,15 @@
 // init-mongo.d/init.js
+// WARNING: This script runs only on first MongoDB startup.
+// Credentials here are for development only. Change in production.
 
-// Conectar a la base de datos 'devdb'
 db.createCollection('test')
 db = db.getSiblingDB('admin');
 
-// Crear el usuario 'apiUser' con el rol 'readWrite' en 'devdb'
+// Create API user with readWrite role
 db.createUser(
   {
     user: "apiUser",
-    pwd: "apiPassword",
+    pwd: "apiPassword", // TODO: Use env vars or secrets manager in production
     roles: [{ role: "readWrite", db: "admin" }]
   }
 );

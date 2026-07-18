@@ -12,10 +12,9 @@ import {
 import groupManager from '../../groups/groupManager';
 import { sendMessageToChannel } from '../../utils/channelWriter';
 import { sendSuccessDM } from '../../utils/dmSender';
+import { config } from '../../config/config';
 import logger from '../../services/logger';
 import * as util from 'util';
-
-const CARRY_CHANNEL_ID = '868651189200379966';
 const REACTION_TIMEOUT_MINUTES = 2;
 const DEBUG_MODE = true;
 
@@ -141,11 +140,11 @@ export default {
         const messageContent = this.createAnnouncementMessage(type, participants, role);
         const message = await sendMessageToChannel(
             interaction.client,
-            CARRY_CHANNEL_ID,
+            config.carryChannelId,
             messageContent
         );
 
-        logger.info(`Mensaje de anuncio enviado al canal ${CARRY_CHANNEL_ID}.`);
+        logger.info(`Mensaje de anuncio enviado al canal ${config.carryChannelId}.`);
 
         await message.react('✅');
         logger.debug(`Reacción ✅ añadida al mensaje del grupo ${group.id}.`);

@@ -3,7 +3,7 @@ import { request } from 'undici';
 import logger from '../services/logger';
 import { JokeRepository } from '../services/jokeReader';
 
-const timewait = 5 * 60000; // 30 minutos
+const timewait = 5 * 60000; // 5 minutos
 
 export interface IJokeProvider {
     getJoke(): Promise<string>;

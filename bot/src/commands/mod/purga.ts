@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, TextChannel } from 'discord.js';
 import { deleteMessage } from '../../services/messageCleaner';
 import { isAuthorized } from '../../utils/permission';
+import logger from '../../services/logger';
 
 export const data = new SlashCommandBuilder()
     .setName('purga')
@@ -8,7 +9,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
     try {
-        console.log('Execute eliminar mensajes');
+        logger.debug('Execute eliminar mensajes');
         if (!isAuthorized(interaction.user.id)) {
             await interaction.reply({
                 content: '⛔ No tienes permiso para usar este comando.',
@@ -20,9 +21,9 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
         await interaction.deferReply();
         const channel = interaction.client.channels.cache.get(interaction.channelId) as TextChannel;
         deleteMessage(channel, interaction.client);
-        console.log('Termina eliminar mensajes');
+        logger.debug('Termina eliminar mensajes');
     } catch (error) {
-        console.log(error);
+        logger.error('Error en comando purga:', error);
     }
 }
 

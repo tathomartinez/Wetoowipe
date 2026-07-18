@@ -25,16 +25,13 @@ export default {
             const valor = chatInputInteraction.options.getInteger('valor', true);
             const destinatario = chatInputInteraction.options.getUser('destinatario', true);
 
-            // Validación mejorada
             if (valor <= 0) {
                 await interaction.editReply('❌ El monto debe ser positivo');
                 return;
             }
 
-            // Registrar transacción
             await logTransaction(valor, destinatario);
 
-            // Respuesta al usuario
             const embed = new EmbedBuilder()
                 .setColor('#00FF00')
                 .setTitle('✅ Transferencia exitosa')
@@ -43,14 +40,14 @@ export default {
             await interaction.editReply({ embeds: [embed] });
 
         } catch (error) {
-            logger.debug('Error en comando amount:', error);
+            logger.error('Error en comando amount:', error);
             await interaction.editReply('❌ Error al procesar la transferencia');
         }
     }
 };
 
 async function logTransaction(valor: number, destinatario: User): Promise<void> {
-    const API_TIMEOUT = 8000; // 8 segundos
+    const API_TIMEOUT = 8000;
     const apiUrl = process.env.GO_API_URL || 'http://localhost:8080';
     const accountEndpoint = `${apiUrl}/api/v1/accounts`;
 
@@ -67,7 +64,6 @@ async function logTransaction(valor: number, destinatario: User): Promise<void> 
     };
 
     try {
-        // Usando AbortController nativo de Node.js
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), API_TIMEOUT);
 
@@ -93,7 +89,7 @@ async function logTransaction(valor: number, destinatario: User): Promise<void> 
 
         logger.debug('Transacción registrada exitosamente:', await response.json());
     } catch (error) {
-        logger.debug('Error al registrar transacción:', {
+        logger.error('Error al registrar transacción:', {
             error: error instanceof Error ? error.message : String(error),
             payload
         });

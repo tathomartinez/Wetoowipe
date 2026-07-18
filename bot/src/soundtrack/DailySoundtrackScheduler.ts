@@ -2,10 +2,8 @@ import cron from 'node-cron';
 import { Client, Guild, VoiceChannel } from 'discord.js';
 import { musicPlayer } from '../core/musicPlayer';
 import { AudioPaths } from '../audio/audioPaths';
+import { config } from '../config/config';
 import logger from '../services/logger';
-
-const GUILD_ID = '577233229136920586';
-const VOICE_CHANNEL_ID = '577233229136920590';
 
 export class DailySoundtrackScheduler {
     private client: Client;
@@ -21,12 +19,12 @@ export class DailySoundtrackScheduler {
 
     public async playSoundtrack(): Promise<void> {
         try {
-            const guild = this.client.guilds.cache.get(GUILD_ID) as Guild;
+            const guild = this.client.guilds.cache.get(config.guildId) as Guild;
             if (!guild) {
                 logger.error('No se encontró el guild con el ID proporcionado.');
                 return;
             }
-            const voiceChannel = guild.channels.cache.get(VOICE_CHANNEL_ID) as VoiceChannel;
+            const voiceChannel = guild.channels.cache.get(config.voiceChannelId) as VoiceChannel;
             if (!voiceChannel) {
                 logger.error('No se encontró el canal de voz con el ID proporcionado.');
                 return;

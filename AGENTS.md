@@ -34,7 +34,7 @@ All commands via `Makefile` at repo root:
 - Commands: `bot/src/commands/` — subdirs `admin/`, `fun/`, `misc/`, `mod/`, loaded recursively
 - Events: `bot/src/events/` — `ready.ts`, `interactionCreate.ts`, voice/guild listeners
 - Core: `bot/src/core/` — `client.ts` (Client with `commands` Collection), `commandLoader.ts`, `eventLoader.ts`, `jokeManager.ts`, `musicPlayer.ts`
-- Jokes: configurable provider — `ApiJokeProvider` (Chuck Norris API) or `FileJokeProvider` (reads `chistes.txt`); cycle runs every 30 min
+- Jokes: configurable provider — `ApiJokeProvider` (Chuck Norris API) or `FileJokeProvider` (reads `chistes.txt`); cycle runs every 5 min
 - TTS: calls `localhost:7860/gradio_api/call/infer` (NVIDIA GPU required)
 - Audio playback: `@discordjs/voice`, manual FFmpeg spawn, entersState wait for Ready, PCM raw input
 - Config: `dotenv` from `.env` at repo root — requires `TOKEN`, `CLIENT_ID`, `GUILD_ID`, etc.
@@ -70,6 +70,24 @@ All commands via `Makefile` at repo root:
 - `musicPlayer.ts` spawns FFmpeg manually and pipes raw PCM to `createAudioResource` with `StreamType.Raw`. Do NOT use auto-probe for audio files — it gets stuck in a Playing state without firing Idle.
 - `tsconfig.json`: `module: "CommonJS"`. Do NOT change to `"Node16"` — causes `moduleResolution` errors in TS 5.9+.
 - `.env` is gitignored. Service URLs must use `localhost` when bot runs in host network mode (not Docker service names like `f5-tts` or `file-server`).
+
+## Memory Banks
+Para información detallada, consulta los memory banks:
+- `MEMORY.md` — Vista maestra del proyecto (stack, comandos, variables)
+- `docs/ARCHITECTURE.md` — Diagrama de servicios, flujo de datos, capas
+- `docs/SECURITY.md` — Autenticación, secrets, SHA validation, rate limiting
+- `docs/DECISIONS.md` — Decisiones de diseño (ADR) del proyecto
+- `docs/RUNBOOK.md` — Deploy, troubleshoot, recovery, rotación de secrets
+- `docs/REFACTOR_PLAN.md` — Plan de refactorización completo (fases 1-4)
+
+## Security Features (post-refactor)
+- **Auth middleware**: Bearer token validation en Go API (`API_TOKEN`)
+- **Admin check**: `isAuthorized()` en comandos `/shutdown`, `/purga`
+- **SHA-512 validation**: Sales log validado con `SECRET_KEY`
+- **Rate limiting**: 100 req/min por IP
+- **CORS**: Configurado para requests cross-origin
+- **MongoDB**: Puerto no expuesto, fijado a `mongo:8.0.6`
+- **Secrets**: `.env.example` como template, `.env` gitignored
 
 ## Migrations completed
 - All `.js` source files converted to `.ts` — no `.js` files remain in `bot/src/`

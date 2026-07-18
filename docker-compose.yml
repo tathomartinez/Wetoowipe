@@ -9,12 +9,12 @@ services:
     env_file:
       - .env
     volumes:
-      - ./bot:/usr/src/app # Montar el código fuente local
-      - /usr/src/app/node_modules # Evitar conflictos con node_modules
-      - ./logs/discord-bot:/usr/src/app/logs # Mantener los logs
-      - ./shared-files:/usr/src/app/shared-files:ro # Archivos de referencia para TTS
+      - ./bot:/usr/src/app
+      - /usr/src/app/node_modules
+      - ./logs/discord-bot:/usr/src/app/logs
+      - ./shared-files:/usr/src/app/shared-files:ro
     working_dir: /usr/src/app
-    command: ["npx", "nodemon", "--watch", "src", "--ext", "ts", "--exec", "npx ts-node main.ts"] # Hot reloading
+    command: ["npx", "nodemon", "--watch", "src", "--ext", "ts", "--exec", "npx ts-node main.ts"]
 
   deploy-commands:
     build:
@@ -42,11 +42,9 @@ services:
       - debug
 
   mongodb:
-    image: mongo:latest
+    image: mongo:8.0.6
     restart: always
     container_name: mongodb
-    ports:
-      - "27017:27017"
     volumes:
       - ./data:/data/db
       - ./init-mongo.d:/docker-entrypoint-initdb.d/:ro
@@ -54,7 +52,6 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
-
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 5s
@@ -74,7 +71,10 @@ services:
       - MONGO_AUTH_DB=${MONGO_DATABASE}
       - MONGO_DATABASE=${MONGO_DATABASE}
       - SECRET_KEY=${SECRET_KEY}
+      - API_TOKEN=${API_TOKEN}
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - APP_ENV=${APP_ENV:-development}
+      - APP_PORT=${APP_PORT:-8080}
     ports:
       - "8080:8080"
     depends_on:
@@ -98,7 +98,7 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD}
       ME_CONFIG_MONGODB_URL: ${MONGO_URI}
-      ME_CONFIG_BASICAUTH: false
+      ME_CONFIG_BASICAUTH: "true"
     depends_on:
       mongodb:
         condition: service_healthy
@@ -106,20 +106,20 @@ services:
       - my_network
     profiles:
       - debug
+
   f5-tts:
     build:
       context: ./Spanish-F5
       dockerfile: Dockerfile
     container_name: f5-tts
     ports:
-      - "7860:7860" # Puerto expuesto por F5-TTS
+      - "7860:7860"
     volumes:
-      # - ./F5-TTS:/workspace/F5-TTS # Montar la carpeta del proyecto
-      - ./logs/f5-tts:/workspace/F5-TTS/logs # Montar la carpeta de logs
+      - ./logs/f5-tts:/workspace/F5-TTS/logs
       - ./f5-tts-cache:/root/.cache/huggingface/hub
-      - ./shared-files:/workspace/shared-files:ro # Archivos de referencia para TTS
+      - ./shared-files:/workspace/shared-files:ro
     environment:
-      - PYTHONUNBUFFERED=1 # Evitar buffering en los logs de Python
+      - PYTHONUNBUFFERED=1
     deploy:
       resources:
         reservations:
@@ -135,10 +135,8 @@ services:
   file-server:
     image: nginx:latest
     container_name: file-server
-    ports:
-      - "8082:80" # Exponer el servidor en el puerto 8080
     volumes:
-      - ./shared-files:/usr/share/nginx/html:ro # Montar la carpeta local como solo lectura
+      - ./shared-files:/usr/share/nginx/html:ro
     networks:
       - my_network
 

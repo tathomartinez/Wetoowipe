@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, CommandInteraction, Message } from 'discord.js';
 import { setTimeout as wait } from 'node:timers/promises';
+import logger from '../../services/logger';
 
 export default {
     data: new SlashCommandBuilder()
@@ -12,10 +13,10 @@ export default {
             await interaction.editReply('Definitivo eres un puto');
             await interaction.followUp({ content: 'PREFIJOBOT' });
             const message: Message = await interaction.fetchReply();
-            console.log(message);
+            logger.debug('Status message:', message);
             await interaction.deleteReply();
         } catch (error) {
-            console.error('Error ejecutando el comando status:', error);
+            logger.error('Error ejecutando el comando status:', error);
         }
     },
 };
