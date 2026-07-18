@@ -1,11 +1,15 @@
-import { 
-    joinVoiceChannel, 
-    createAudioPlayer, 
-    createAudioResource, 
-    AudioPlayerStatus, 
-    VoiceConnection, 
-    AudioPlayer, 
-    AudioResource 
+import { spawn } from 'child_process';
+import {
+    joinVoiceChannel,
+    createAudioPlayer,
+    createAudioResource,
+    AudioPlayerStatus,
+    VoiceConnection,
+    AudioPlayer,
+    AudioResource,
+    StreamType,
+    entersState,
+    VoiceConnectionStatus,
 } from '@discordjs/voice';
 import { VoiceChannel, Guild } from 'discord.js';
 import logger from '../services/logger';
@@ -17,48 +21,91 @@ type MusicPlayerOptions = {
     onFinish?: () => void;
 };
 
-/**
- * Reproduce un archivo de audio en un canal de voz.
- * @param options Opciones para la reproducción.
- */
+const activeConnections = new Map<string, VoiceConnection>();
+
 export async function musicPlayer({ voiceChannel, guild, audioPath, onFinish }: MusicPlayerOptions): Promise<void> {
     if (!voiceChannel) {
         throw new Error('El usuario no está en un canal de voz.');
     }
 
-    // Conectarse al canal de voz
+    const guildId = guild.id;
+
     const connection: VoiceConnection = joinVoiceChannel({
         channelId: voiceChannel.id,
-        guildId: guild.id,
+        guildId,
         adapterCreator: guild.voiceAdapterCreator as any,
+        selfDeaf: true,
     });
 
-    // Crear un reproductor de audio
+    connection.on('stateChange', (oldState: any, newState: any) => {
+        logger.debug(`[VoiceConnection] ${oldState.status} -> ${newState.status}`);
+    });
+
+    logger.debug('Esperando conexión Ready...');
+    try {
+        await entersState(connection, VoiceConnectionStatus.Ready, 10_000);
+    } catch {
+        logger.error('[VoiceConnection] No se pudo conectar al canal de voz en 10s');
+        connection.destroy();
+        return;
+    }
+    logger.debug('[VoiceConnection] Conexión establecida en Ready');
+
     const player: AudioPlayer = createAudioPlayer();
 
-    // Cargar un archivo de audio o una URL
     logger.debug('Cargando audio: ' + audioPath);
-    const resource: AudioResource = createAudioResource(audioPath);
+    const ffmpeg = spawn('ffmpeg', [
+        '-i', audioPath,
+        '-f', 's16le',
+        '-ar', '48000',
+        '-ac', '2',
+        '-',
+    ], { stdio: ['ignore', 'pipe', 'pipe'] });
 
-    // Conectar el reproductor al canal de voz
+    ffmpeg.stderr.on('data', (data: Buffer) => {
+        logger.debug('[FFmpeg] ' + data.toString().trim());
+    });
+
+    ffmpeg.on('error', (err: Error) => {
+        logger.error('[FFmpeg] Error: ' + err.message);
+    });
+
+    const resource: AudioResource = createAudioResource(ffmpeg.stdout!, {
+        inputType: StreamType.Raw,
+        inlineVolume: true,
+    });
+
+    resource.playStream?.on('error', (error: Error) => {
+        logger.error('[Resource] Error en el stream: ' + error.message);
+    });
+
     connection.subscribe(player);
 
-    // Reproducir el audio
+    const cleanup = () => {
+        activeConnections.delete(guildId);
+        connection.destroy();
+        if (!ffmpeg.killed) ffmpeg.kill();
+    };
+
+    activeConnections.set(guildId, connection);
     player.play(resource);
 
-    // Manejar eventos del reproductor
-    player.on(AudioPlayerStatus.Playing, () => {
-        logger.info('Reproduciendo audio...');
-    });
+    return new Promise<void>((resolve, reject) => {
+        player.on(AudioPlayerStatus.Playing, () => {
+            logger.info('Reproduciendo audio...');
+        });
 
-    player.on(AudioPlayerStatus.Idle, () => {
-        logger.info('Audio terminado.');
-        connection.destroy(); // Desconectar del canal de voz
-        if (onFinish) onFinish(); // Ejecutar callback si se proporciona
-    });
+        player.on(AudioPlayerStatus.Idle, () => {
+            logger.info('Audio terminado.');
+            cleanup();
+            if (onFinish) onFinish();
+            resolve();
+        });
 
-    player.on('error', error => {
-        logger.error('Error en el reproductor de audio: ' + error);
-        connection.destroy(); // Desconectar del canal de voz en caso de error
+        player.on('error', error => {
+            logger.error('Error en el reproductor de audio: ' + error);
+            cleanup();
+            reject(error);
+        });
     });
 }

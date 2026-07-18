@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: discord-bot
     restart: unless-stopped
+    network_mode: "host"
     env_file:
       - .env
     volumes:
@@ -13,8 +14,6 @@ services:
       - ./logs/discord-bot:/usr/src/app/logs # Mantener los logs
     working_dir: /usr/src/app
     command: ["npx", "nodemon", "--watch", "src", "--ext", "ts", "--exec", "npx ts-node main.ts"] # Hot reloading
-    networks:
-      - my_network
 
   deploy-commands:
     build:
