@@ -1,0 +1,179 @@
+definitions:
+  api.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  api.TransactionRequest:
+    properties:
+      amount:
+        type: number
+      description:
+        type: string
+    type: object
+  domain.Transaction:
+    properties:
+      cuentaDestino:
+        description: Opcional para retiros
+        type: string
+      cuentaOrigen:
+        description: Opcional para depósitos
+        type: string
+      descripcion:
+        type: string
+      estado:
+        $ref: '#/definitions/domain.TransactionStatus'
+      fecha:
+        type: string
+      fechaCreacion:
+        type: string
+      id:
+        type: string
+      monto:
+        type: number
+      referencia:
+        type: string
+      tipo:
+        $ref: '#/definitions/domain.TransactionType'
+    type: object
+  domain.TransactionStatus:
+    enum:
+    - procesada
+    - fallida
+    - pendiente
+    - revertida
+    - cancelada
+    - en_proceso
+    - exitoso
+    type: string
+    x-enum-varnames:
+    - TransactionStatusProcesada
+    - TransactionStatusFallida
+    - TransactionStatusPendiente
+    - TransactionStatusRevertida
+    - TransactionStatusCancelada
+    - TransactionStatusEnProceso
+    - TransactionStatusExitoso
+  domain.TransactionType:
+    enum:
+    - deposito
+    - retiro
+    - transferencia
+    type: string
+    x-enum-varnames:
+    - TransactionTypeDeposito
+    - TransactionTypeRetiro
+    - TransactionTypeTransferencia
+  domain.User:
+    properties:
+      fechaCreacion:
+        type: string
+      id:
+        type: string
+      nombre:
+        type: string
+      numeroCuenta:
+        type: string
+      saldo:
+        type: number
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/accounts:
+    post:
+      consumes:
+      - application/json
+      description: Create a new bank account with initial balance
+      parameters:
+      - description: Account details
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/domain.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Create a new bank account
+      tags:
+      - accounts
+  /api/v1/accounts/{accountNumber}:
+    get:
+      description: Get details of a bank account by account number
+      parameters:
+      - description: Account number
+        in: path
+        name: accountNumber
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Get account details
+      tags:
+      - accounts
+  /api/v1/accounts/{accountNumber}/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposit money to an account
+      parameters:
+      - description: Account number
+        in: path
+        name: accountNumber
+        required: true
+        type: string
+      - description: Deposit details
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/api.TransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Deposit money
+      tags:
+      - transactions
+swagger: "2.0"

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2021", // Versión de JavaScript a la que se compilará
+    "module": "CommonJS",
+    "lib": ["es2021"],
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "allowSyntheticDefaultImports": true, // Permite importar módulos con `import` en lugar de `require`
+    "allowJs": true // Permitir archivos .js
+  },
+  "include": ["src"], // Incluye todos los archivos dentro de la carpeta src
+  "exclude": ["node_modules", "dist"] // Excluye estas carpetas del proceso de compilación
+}
