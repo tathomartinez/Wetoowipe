@@ -116,6 +116,7 @@ services:
       # - ./F5-TTS:/workspace/F5-TTS # Montar la carpeta del proyecto
       - ./logs/f5-tts:/workspace/F5-TTS/logs # Montar la carpeta de logs
       - ./f5-tts-cache:/root/.cache/huggingface/hub
+      - ./shared-files:/workspace/shared-files:ro # Archivos de referencia para TTS
     environment:
       - PYTHONUNBUFFERED=1 # Evitar buffering en los logs de Python
     deploy:

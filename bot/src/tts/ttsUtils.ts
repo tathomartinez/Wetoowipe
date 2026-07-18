@@ -20,6 +20,31 @@ interface TTSResultFile {
     orig_name?: string;
 }
 
+export async function uploadFileToGradio(baseUrl: string, filePath: string): Promise<string> {
+    const fileBuffer = fs.readFileSync(filePath);
+    const fileName = filePath.split('/').pop() || 'audio.wav';
+
+    const formData = new FormData();
+    formData.append('files', new Blob([fileBuffer]), fileName);
+
+    const uploadUrl = baseUrl.replace('/call/infer', '/upload');
+    const res = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!res.ok) {
+        throw new Error(`Error al subir archivo a Gradio: ${res.statusText}`);
+    }
+
+    const paths = await res.json() as string[];
+    if (!paths.length) {
+        throw new Error('No se devolvió ninguna ruta del upload de Gradio');
+    }
+
+    return paths[0];
+}
+
 export async function sendTTSRequest(url: string, body: unknown): Promise<TTSResponse> {
     const res = await fetch(url, {
         method: 'POST',

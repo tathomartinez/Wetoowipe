@@ -4,13 +4,14 @@ import {
     sendTTSRequest,
     getTTSResult,
     downloadAudioFile,
-    playAudioInVoiceChannel
+    playAudioInVoiceChannel,
+    uploadFileToGradio
 } from './ttsUtils';
 import logger from '../services/logger';
 import { ChatInputCommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 
 const TTS_SERVER_URL = process.env.TTS_SERVER_URL || '';
-const FILE_SERVER_INTERNAL_URL = process.env.FILE_SERVER_INTERNAL_URL || '';
+const REFERENCE_AUDIO_PATH = './shared-files/mapacha_rev.wav';
 const AUDIO_FILENAME = 'audio.wav';
 
 /**
@@ -29,10 +30,14 @@ export async function playTTS(interaction: ChatInputCommandInteraction, text: st
             await interaction.deferReply();
         }
 
+        logger.debug('Subiendo archivo de referencia a Gradio...');
+        const uploadedPath = await uploadFileToGradio(TTS_SERVER_URL, REFERENCE_AUDIO_PATH);
+        logger.info(`Archivo subido a Gradio: ${uploadedPath}`);
+
         const postData = {
             data: [
                 {
-                    path: `${FILE_SERVER_INTERNAL_URL}/mapacha_rev.wav`,
+                    path: uploadedPath,
                     meta: { _type: "gradio.FileData" }
                 },
                 "",
