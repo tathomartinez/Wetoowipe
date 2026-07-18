@@ -12,6 +12,7 @@ services:
       - ./bot:/usr/src/app # Montar el código fuente local
       - /usr/src/app/node_modules # Evitar conflictos con node_modules
       - ./logs/discord-bot:/usr/src/app/logs # Mantener los logs
+      - ./shared-files:/usr/src/app/shared-files:ro # Archivos de referencia para TTS
     working_dir: /usr/src/app
     command: ["npx", "nodemon", "--watch", "src", "--ext", "ts", "--exec", "npx ts-node main.ts"] # Hot reloading
 
