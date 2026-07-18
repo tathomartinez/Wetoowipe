@@ -99,3 +99,9 @@ data
 F5-TTS-cache
 tts-output
 f5-tts-cache
+
+# Training data (audio, datasets, checkpoints)
+training/datasets/*
+training/checkpoints/*
+!training/datasets/.gitkeep
+!training/checkpoints/.gitkeep

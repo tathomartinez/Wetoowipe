@@ -64,3 +64,13 @@ tts:
 
 tts-rebuild:
 	docker-compose up --build -d f5-tts
+
+# Training commands
+train-prepare:
+	docker compose run --rm f5-tts-train bash /workspace/training/prepare_dataset.sh $(dataset)
+
+train-start:
+	docker compose run --rm f5-tts-train bash /workspace/training/train.sh $(dataset) $(batch) $(epochs) $(lr)
+
+train-convert:
+	./training/convert_audio.sh $(input) $(output)

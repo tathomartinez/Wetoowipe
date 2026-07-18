@@ -13,6 +13,7 @@ services:
       - /usr/src/app/node_modules
       - ./logs/discord-bot:/usr/src/app/logs
       - ./shared-files:/usr/src/app/shared-files:ro
+      - ./tts-output:/usr/src/app/tts-output
     working_dir: /usr/src/app
     command: ["npx", "nodemon", "--watch", "src", "--ext", "ts", "--exec", "npx ts-node main.ts"]
 
@@ -118,6 +119,30 @@ services:
       - ./logs/f5-tts:/workspace/F5-TTS/logs
       - ./f5-tts-cache:/root/.cache/huggingface/hub
       - ./shared-files:/workspace/shared-files:ro
+      - ./training:/workspace/training
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CUSTOM_MODEL_PATH=/workspace/training/checkpoints/ejemplo/model_last.pt
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    runtime: nvidia
+    networks:
+      - my_network
+    command: ["sh", "-c", "pip install -q torch==2.5.1 torchaudio==2.5.1 torchvision==0.20.1 && bash /workspace/training/start_custom_tts.sh"]
+
+  f5-tts-train:
+    build:
+      context: ./Spanish-F5
+      dockerfile: Dockerfile
+    volumes:
+      - ./training:/workspace/training
+      - ./training/checkpoints:/workspace/f5-tts/ckpts
+      - ./f5-tts-cache:/root/.cache/huggingface/hub
     environment:
       - PYTHONUNBUFFERED=1
     deploy:
@@ -130,13 +155,24 @@ services:
     runtime: nvidia
     networks:
       - my_network
-    command: ["sh", "-c", "pip install -q torch==2.5.1 torchaudio==2.5.1 torchvision==0.20.1 && f5-tts_infer-gradio --host 0.0.0.0"]
+    entrypoint: ["/workspace/training/entrypoint.sh"]
 
   file-server:
     image: nginx:latest
     container_name: file-server
     volumes:
       - ./shared-files:/usr/share/nginx/html:ro
+    networks:
+      - my_network
+
+  cron-cleanup:
+    image: alpine:latest
+    container_name: cron-cleanup
+    restart: unless-stopped
+    volumes:
+      - ./tts-output:/tts-output
+    command: >
+      sh -c "echo '0 * * * * find /tts-output -name \"*.wav\" -mmin +1440 -delete' | crontab - && crond -f"
     networks:
       - my_network
 

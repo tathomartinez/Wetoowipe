@@ -11,7 +11,7 @@ import logger from '../services/logger';
 import { ChatInputCommandInteraction, GuildMember, VoiceChannel } from 'discord.js';
 
 const TTS_SERVER_URL = process.env.TTS_SERVER_URL || '';
-const REFERENCE_AUDIO_PATH = './shared-files/mapacha_rev.wav';
+const REFERENCE_AUDIO_PATH = './shared-files/nueva_voz.wav';
 const AUDIO_FILENAME = 'audio.wav';
 
 /**
