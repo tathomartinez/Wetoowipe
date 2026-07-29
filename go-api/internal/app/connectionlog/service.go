@@ -13,9 +13,8 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) LogConnection(ip, userID, channelID, guildID, eventType string) error {
+func (s *Service) LogConnection(userID, channelID, guildID, eventType string) error {
 	entry := domain.ConnectionLogEntry{
-		IP:        ip,
 		UserID:    userID,
 		ChannelID: channelID,
 		GuildID:   guildID,

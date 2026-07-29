@@ -19,7 +19,7 @@ func TestLogConnection(t *testing.T) {
 	service := NewService(repo)
 
 	t.Run("logs join event successfully", func(t *testing.T) {
-		err := service.LogConnection("192.168.1.1", "user123", "channel456", "guild789", "join")
+		err := service.LogConnection("user123", "channel456", "guild789", "join")
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -27,9 +27,6 @@ func TestLogConnection(t *testing.T) {
 			t.Fatalf("expected 1 entry, got %d", len(repo.entries))
 		}
 		entry := repo.entries[0]
-		if entry.IP != "192.168.1.1" {
-			t.Errorf("expected IP 192.168.1.1, got %s", entry.IP)
-		}
 		if entry.UserID != "user123" {
 			t.Errorf("expected UserID user123, got %s", entry.UserID)
 		}
@@ -48,7 +45,7 @@ func TestLogConnection(t *testing.T) {
 	})
 
 	t.Run("logs leave event successfully", func(t *testing.T) {
-		err := service.LogConnection("10.0.0.1", "user456", "channel789", "guild789", "leave")
+		err := service.LogConnection("user456", "channel789", "guild789", "leave")
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
