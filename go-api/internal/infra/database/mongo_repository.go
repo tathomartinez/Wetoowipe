@@ -11,16 +11,18 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"go-api/internal/app/connectionlog"
 	"go-api/internal/app/saleslog"
 	"go-api/internal/domain"
 )
 
 type MongoDBRepository struct {
-	client                 *mongo.Client
-	databaseName           string
-	collectionSales        string
-	collectionUsers        string
-	collectionTransactions string
+	client                  *mongo.Client
+	databaseName            string
+	collectionSales         string
+	collectionUsers         string
+	collectionTransactions  string
+	collectionConnectionLogs string
 }
 
 func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
@@ -85,11 +87,12 @@ func NewMongoDBRepository(ctx context.Context) (*MongoDBRepository, error) {
 	}
 
 	return &MongoDBRepository{
-		client:                 client,
-		databaseName:           databaseName,
-		collectionSales:        "sales_logs",
-		collectionUsers:        "users",
-		collectionTransactions: "transactions",
+		client:                  client,
+		databaseName:            databaseName,
+		collectionSales:         "sales_logs",
+		collectionUsers:         "users",
+		collectionTransactions:  "transactions",
+		collectionConnectionLogs: "connection_logs",
 	}, nil
 }
 
@@ -238,4 +241,18 @@ func (r *MongoDBRepository) GetRules(ctx context.Context) (*domain.Rules, error)
 	return &rules, nil
 }
 
+func (r *MongoDBRepository) InsertConnectionLog(entry domain.ConnectionLogEntry) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	entry.ID = bson.NewObjectID()
+	collection := r.client.Database(r.databaseName).Collection(r.collectionConnectionLogs)
+	_, err := collection.InsertOne(ctx, entry)
+	if err != nil {
+		log.Printf("Error al guardar connection log: %v", err)
+		return fmt.Errorf("failed to insert connection log: %w", err)
+	}
+	return nil
+}
+
 var _ saleslog.Repository = &MongoDBRepository{}
+var _ connectionlog.Repository = &MongoDBRepository{}

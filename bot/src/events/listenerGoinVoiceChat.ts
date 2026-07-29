@@ -1,33 +1,37 @@
 import { Events, VoiceState, Guild, VoiceChannel } from 'discord.js';
-import { musicPlayer } from '../core/musicPlayer'; // Importar la función musicPlayer
-import { AudioPaths } from '../audio/audioPaths'; // Importar el "enum"
+import { musicPlayer } from '../core/musicPlayer';
+import { AudioPaths } from '../audio/audioPaths';
 import logger from '../services/logger';
+import { logVoiceConnection } from '../services/voiceLogService';
 
 export default {
     name: Events.VoiceStateUpdate,
     once: false,
     async execute(oldState: VoiceState, newState: VoiceState): Promise<void> {
         try {
-            // Salir si el usuario no se conectó a un canal de voz
-            const botId = process.env.BOT_ID; // ID del bot
+            const botId = process.env.BOT_ID;
             if (newState.member?.id === botId) {
                 return;
             }
 
-            if (oldState.channel || !newState.channel) {
-                return;
+            const userId = newState.member?.id || oldState.member?.id;
+            const guildId = newState.guild.id || oldState.guild.id;
+
+            if (!oldState.channel && newState.channel) {
+                logger.debug(`Estado de voz actualizado: ${newState.member?.user.tag} se unió al canal ${newState.channel.name}`);
+
+                await logVoiceConnection(userId!, newState.channel.id, guildId, 'join');
+
+                await musicPlayer({
+                    voiceChannel: newState.channel as VoiceChannel,
+                    guild: newState.guild as Guild,
+                    audioPath: AudioPaths.BIENVENIDO,
+                });
+            } else if (oldState.channel && !newState.channel) {
+                logger.debug(`${oldState.member?.user.tag} se desconectó del canal ${oldState.channel.name}`);
+
+                await logVoiceConnection(userId!, oldState.channel.id, guildId, 'leave');
             }
-            logger.debug(`Estado de voz actualizado: ${newState.member?.user.tag} se unió al canal ${newState.channel.name}`);
-
-            logger.debug(`${newState.member?.user.tag} se unió al canal de voz: ${newState.channel.name}`);
-
-            logger.debug(`El usuario específico ${newState.member?.user.tag} se conectó al canal de voz: ${newState.channel.name}`);
-            // Ejecutar musicPlayer
-            await musicPlayer({
-                voiceChannel: newState.channel as VoiceChannel,
-                guild: newState.guild as Guild,
-                audioPath: AudioPaths.BIENVENIDO,
-            });
         } catch (error) {
             logger.debug('Error en el evento VoiceStateUpdate:', error);
         }

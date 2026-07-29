@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go-api/internal/app/bank"
+	"go-api/internal/app/connectionlog"
 	"go-api/internal/app/rules"
 	"go-api/internal/app/saleslog"
 	"go-api/internal/infra/api"
@@ -27,9 +28,9 @@ func main() {
 	mongoRepo := initializeDatabase(ctx)
 	defer disconnectDatabase(ctx, mongoRepo)
 
-	bankHandler, rulesHandler, salesLogHandler := initializeHandlers(mongoRepo)
+	bankHandler, rulesHandler, salesLogHandler, connectionLogHandler := initializeHandlers(mongoRepo)
 
-	router := setupRouter(bankHandler, rulesHandler, salesLogHandler)
+	router := setupRouter(bankHandler, rulesHandler, salesLogHandler, connectionLogHandler)
 
 	startServer(router)
 }
@@ -68,7 +69,7 @@ func disconnectDatabase(ctx context.Context, mongoRepo *database.MongoDBReposito
 	}
 }
 
-func initializeHandlers(mongoRepo *database.MongoDBRepository) (*api.BankHandler, *api.RulesHandler, *api.SalesLogHandler) {
+func initializeHandlers(mongoRepo *database.MongoDBRepository) (*api.BankHandler, *api.RulesHandler, *api.SalesLogHandler, *api.ConnectionLogHandler) {
 	secretKey := os.Getenv("SECRET_KEY")
 	if secretKey == "" {
 		log.Fatal("SECRET_KEY environment variable is required")
@@ -77,15 +78,17 @@ func initializeHandlers(mongoRepo *database.MongoDBRepository) (*api.BankHandler
 	bankService := bank.NewBankService(mongoRepo)
 	rulesService := rules.NewRulesService(mongoRepo)
 	salesLogService := saleslog.NewSalesLogService(mongoRepo, secretKey)
+	connectionLogService := connectionlog.NewService(mongoRepo)
 
 	bankHandler := api.NewBankHandler(bankService)
 	rulesHandler := api.NewRulesHandler(rulesService)
 	salesLogHandler := api.NewSalesLogHandler(salesLogService)
+	connectionLogHandler := api.NewConnectionLogHandler(connectionLogService)
 
-	return bankHandler, rulesHandler, salesLogHandler
+	return bankHandler, rulesHandler, salesLogHandler, connectionLogHandler
 }
 
-func setupRouter(bankHandler *api.BankHandler, rulesHandler *api.RulesHandler, salesLogHandler *api.SalesLogHandler) *mux.Router {
+func setupRouter(bankHandler *api.BankHandler, rulesHandler *api.RulesHandler, salesLogHandler *api.SalesLogHandler, connectionLogHandler *api.ConnectionLogHandler) *mux.Router {
 	r := mux.NewRouter()
 
 	apiV1 := r.PathPrefix("/api/v1").Subrouter()
@@ -97,6 +100,7 @@ func setupRouter(bankHandler *api.BankHandler, rulesHandler *api.RulesHandler, s
 	apiV1.HandleFunc("/accounts/{accountNumber}/transfer", bankHandler.Transfer).Methods("POST")
 
 	apiV1.HandleFunc("/webhook", rulesHandler.GetRules).Methods("POST")
+	apiV1.HandleFunc("/voice-log", connectionLogHandler.LogVoiceConnection).Methods("POST")
 
 	r.HandleFunc("/", salesLogHandler.RootHandler)
 	r.HandleFunc("/log", salesLogHandler.LogHandler)
